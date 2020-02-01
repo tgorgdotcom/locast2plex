@@ -1,0 +1,9 @@
+locast2plex:
+    image: tgorg/locast2plex
+    ports:
+      - "6077:6077"
+    restart: unless-stopped
+    environment:
+      - username=username
+      - password=password
+      - listen_addy=127.0.0.1
