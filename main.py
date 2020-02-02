@@ -27,6 +27,8 @@ current_stream_urls = {}
 
 
 
+
+
 def locast_login():
     global current_token
     
@@ -45,6 +47,15 @@ def locast_login():
         loginOpn = urllib2.urlopen(loginReq)
         loginRes = json.load(loginOpn)
         loginOpn.close()
+    except urllib2.URLError as urlError:
+        print("Error during login: " + urlError.message)
+        return False
+    except urllib2.HTTPError as httpError:
+        print("Error during login: " + httpError.message)
+        return False
+    except json.JSONDecodeError as jsonError:
+        print("Error during login: " + httpError.message)
+        return False
     except Exception as loginErr:
         print("Error during login: " + loginErr.message)
         return False
@@ -67,6 +78,15 @@ def validate_user():
         userOpn = urllib2.urlopen(userReq)
         userRes = json.load(userOpn)
         userOpn.close()
+    except urllib2.URLError as urlError:
+        print("Error during user info request: " + urlError.message)
+        return False
+    except urllib2.HTTPError as httpError:
+        print("Error during user info request: " + httpError.message)
+        return False
+    except json.JSONDecodeError as jsonError:
+        print("Error during user info request: " + httpError.message)
+        return False
     except Exception as userInfoErr:
         print("Error during user info request: " + userInfoErr.message)
         return False
@@ -115,6 +135,15 @@ def generate_m3u():
             geoOpn = urllib2.urlopen(geoReq)
             geoRes = json.load(geoOpn)
             geoOpn.close()
+        except urllib2.URLError as urlError:
+            print("Error during geo IP acquisition: " + urlError.message)
+            return False
+        except urllib2.HTTPError as httpError:
+            print("Error during geo IP acquisition: " + httpError.message)
+            return False
+        except json.JSONDecodeError as jsonError:
+            print("Error during geo IP acquisition: " + httpError.message)
+            return False
         except Exception as geoIpErr:
             print("Error during geo IP acquisition: " + geoIpErr.message)
             return False
@@ -135,6 +164,15 @@ def generate_m3u():
             dmaOpn = urllib2.urlopen(dmaReq)
             dmaRes = json.load(dmaOpn)
             dmaOpn.close()
+        except urllib2.URLError as urlError:
+            print("Error when getting the users's DMA: " + urlError.message)
+            return False
+        except urllib2.HTTPError as httpError:
+            print("Error when getting the users's DMA: " + httpError.message)
+            return False
+        except json.JSONDecodeError as jsonError:
+            print("Error when getting the users's DMA: " + httpError.message)
+            return False
         except Exception as dmaErr:
             print("Error when getting the users's DMA: " + dmaErr.message)
             return False
@@ -160,6 +198,15 @@ def generate_m3u():
             stationsRes = json.load(stationsOpn)
             stationsOpn.close()
 
+        except urllib2.URLError as urlError:
+            print("Error when getting the list of stations: " + urlError.message)
+            return False
+        except urllib2.HTTPError as httpError:
+            print("Error when getting the list of stations: " + httpError.message)
+            return False
+        except json.JSONDecodeError as jsonError:
+            print("Error when getting the list of stations: " + httpError.message)
+            return False
         except Exception as stationErr:
             print("Error when getting the list of stations: " + stationErr.message)
             return False
@@ -184,6 +231,15 @@ def generate_m3u():
             videoUrlOpn = urllib2.urlopen(videoUrlReq)
             videoUrlRes = json.load(videoUrlOpn)
             videoUrlOpn.close()
+        except urllib2.URLError as urlError:
+            print("Error when getting the video URL: " + urlError.message)
+            return False
+        except urllib2.HTTPError as httpError:
+            print("Error when getting the video URL: " + httpError.message)
+            return False
+        except json.JSONDecodeError as jsonError:
+            print("Error when getting the video URL: " + httpError.message)
+            return False
         except Exception as videoUrlReqErr:
             print("Error when getting the video URL: " + videoUrlReqErr.message)
             return False
@@ -249,13 +305,12 @@ else:
 
 
 
-telly_check_cnt = 0
 telly_video_processing = False
 restart_telly = False
 quit_app = False
 
 
-check_time = int(time.time()) + 1800
+check_time = int(time.time()) + 240 # 1800
 nbsr = NBSR(telly_proc.stdout)
 
 while True:
@@ -269,6 +324,7 @@ while True:
     if (not telly_video_processing) and restart_telly:
         telly_proc.terminate()
         run_telly()
+        restart_telly = False
 
     # if we're supposed to quit completely, then exit
     if (not telly_video_processing) and quit_app:
@@ -299,7 +355,13 @@ while True:
 
         # check on the user.  if something's wrong (donation, etc), then exit
         if not validate_user():
-            quit_app = True
+            print("Will check if a login fixes the issue...")
+            if not locast_login(): # try logging in again, to be sure
+                quit_app = True
+            else
+                print("Login OK!  Lets see if we can validate now...")
+                if not validate_user():  # if login worked, try validation one last time
+                    quit_app = True
 
 
         # check if the stream urls changed.  if so, reset the telly process if there's no processing being done
@@ -316,6 +378,6 @@ while True:
         else:
             quit_app = True
 
-        check_time = int(time.time()) + 1800
+        check_time = int(time.time()) + 240
         
         
