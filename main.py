@@ -310,7 +310,7 @@ restart_telly = False
 quit_app = False
 
 
-check_time = int(time.time()) + 240 # 1800
+check_time = int(time.time()) + 1800
 nbsr = NBSR(telly_proc.stdout)
 
 while True:
