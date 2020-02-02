@@ -1,5 +1,6 @@
 import json, urllib2, subprocess, time, os, sys
 import m3u8
+from nbstreamreader import NonBlockingStreamReader as NBSR
 
 
 # set to directory of script
@@ -9,7 +10,7 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 CONFIG_LOCAST_USERNAME = os.getenv('username')
 CONFIG_LOCAST_PASSWORD = os.getenv('password')
 CONFIG_LISTEN_ADDY = os.getenv("listen_addy")
-CURRENT_VERSION = "0.1.0"
+CURRENT_VERSION = "0.2.0"
 
 
 
@@ -19,11 +20,16 @@ print("Locast2Plex v" + CURRENT_VERSION)
 
 telly_proc = None
 current_token = None
-
+current_location = None
+current_dma = None
+current_station_list = None
+current_stream_urls = {}
 
 
 
 def locast_login():
+    global current_token
+    
     # login
     print("Logging into Locast using username " + CONFIG_LOCAST_USERNAME + "...")
 
@@ -33,8 +39,8 @@ def locast_login():
 
     try:
         loginReq = urllib2.Request('https://api.locastnet.org/api/user/login', 
-                                '{"username":"' + CONFIG_LOCAST_USERNAME + '","password":"' + CONFIG_LOCAST_PASSWORD + '"}',
-                                {'Content-Type': 'application/json'})
+                                    '{"username":"' + CONFIG_LOCAST_USERNAME + '","password":"' + CONFIG_LOCAST_PASSWORD + '"}',
+                                    {'Content-Type': 'application/json'})
 
         loginOpn = urllib2.urlopen(loginReq)
         loginRes = json.load(loginOpn)
@@ -56,7 +62,7 @@ def validate_user():
     try:
         # get user info and make sure we donated
         userReq = urllib2.Request('https://api.locastnet.org/api/user/me', 
-                                headers={'Content-Type': 'application/json', 'authorization': 'Bearer ' + current_token})
+                                  headers={'Content-Type': 'application/json', 'authorization': 'Bearer ' + current_token})
 
         userOpn = urllib2.urlopen(userReq)
         userRes = json.load(userOpn)
@@ -88,6 +94,8 @@ def validate_user():
 
 
 def generate_m3u():
+    global current_location, current_dma, current_station_list, current_stream_urls
+
     print("Opening/Creating locastChannels.m3u8...")
 
     # video list
@@ -100,81 +108,85 @@ def generate_m3u():
 
     print("Getting user location...")
 
-    try:
-        # get current location
-        geoReq = urllib2.Request('https://get.geojs.io/v1/ip/geo.json')
-        geoOpn = urllib2.urlopen(geoReq)
-        geoRes = json.load(geoOpn)
-        geoOpn.close()
-    except Exception as geoIpErr:
-        print("Error during geo IP acquisition: " + geoIpErr.message)
-        print("Exiting...")
-        exit()
+    if current_location is None:
+        try:
+            # get current location
+            geoReq = urllib2.Request('https://get.geojs.io/v1/ip/geo.json')
+            geoOpn = urllib2.urlopen(geoReq)
+            geoRes = json.load(geoOpn)
+            geoOpn.close()
+        except Exception as geoIpErr:
+            print("Error during geo IP acquisition: " + geoIpErr.message)
+            return False
+        current_location = geoRes
 
 
     # TODO: Save this so we don't have to keep looking hitting the api
 
+    if current_dma is None:
+        print("Getting user's media market (DMA)...")
 
-    print("Getting user's media market (DMA)...")
+        try:
+            # https://api.locastnet.org/api/watch/dma/40.543034399999996/-75.42280769999999
+            # returns dma - local market
+            dmaReq = urllib2.Request('https://api.locastnet.org/api/watch/dma/' + current_location['latitude'] + '/' + current_location['longitude'], 
+                                    headers={'Content-Type': 'application/json'})
 
-    try:
-        # https://api.locastnet.org/api/watch/dma/40.543034399999996/-75.42280769999999
-        # returns dma - local market
-        dmaReq = urllib2.Request('https://api.locastnet.org/api/watch/dma/' + geoRes['latitude'] + '/' + geoRes['longitude'], 
-                                headers={'Content-Type': 'application/json'})
+            dmaOpn = urllib2.urlopen(dmaReq)
+            dmaRes = json.load(dmaOpn)
+            dmaOpn.close()
+        except Exception as dmaErr:
+            print("Error when getting the users's DMA: " + dmaErr.message)
+            return False
 
-        dmaOpn = urllib2.urlopen(dmaReq)
-        dmaRes = json.load(dmaOpn)
-        dmaOpn.close()
-    except Exception as dmaErr:
-        print("Error when getting the users's DMA: " + dmaErr.message)
-        print("Exiting...")
-        exit()
+        current_dma = dmaRes['DMA']
 
 
     # TODO: check if we dont return any results
 
 
 
-    print("Getting list of stations based on DMA...")
+    if current_station_list is None:
+        print("Getting list of stations based on DMA...")
 
-    try:
-        # https://api.locastnet.org/api/watch/epg/504
-        # get stations
-        stationsReq = urllib2.Request('https://api.locastnet.org/api/watch/epg/' + dmaRes['DMA'], 
-                                    headers={'Content-Type': 'application/json',
-                                            'authorization': 'Bearer ' + current_token})
+        try:
+            # https://api.locastnet.org/api/watch/epg/504
+            # get stations
+            stationsReq = urllib2.Request('https://api.locastnet.org/api/watch/epg/' + current_dma, 
+                                         headers={'Content-Type': 'application/json',
+                                                  'authorization': 'Bearer ' + current_token})
 
-        stationsOpn = urllib2.urlopen(stationsReq)
-        stationsRes = json.load(stationsOpn)
-        stationsOpn.close()
-    except Exception as stationErr:
-        print("Error when getting the list of stations: " + stationErr.message)
-        print("Exiting...")
-        exit()
+            stationsOpn = urllib2.urlopen(stationsReq)
+            stationsRes = json.load(stationsOpn)
+            stationsOpn.close()
+
+        except Exception as stationErr:
+            print("Error when getting the list of stations: " + stationErr.message)
+            return False
+
+        current_station_list = stationsRes
 
 
 
 
     # get station video URLS
-    for station in stationsRes:
+    for station in current_station_list:
 
         print("Getting station info for " + station['name'] + "...")
 
         try:
             videoUrlReq = urllib2.Request('https://api.locastnet.org/api/watch/station/' + 
                                                 str(station['id']) + '/' + 
-                                                geoRes['latitude'] + '/' + 
-                                                geoRes['longitude'], 
-                                        headers={'Content-Type': 'application/json',
-                                                    'authorization': 'Bearer ' + current_token})
+                                                current_location['latitude'] + '/' + 
+                                                current_location['longitude'], 
+                                          headers={'Content-Type': 'application/json',
+                                                   'authorization': 'Bearer ' + current_token})
             videoUrlOpn = urllib2.urlopen(videoUrlReq)
             videoUrlRes = json.load(videoUrlOpn)
             videoUrlOpn.close()
         except Exception as videoUrlReqErr:
             print("Error when getting the video URL: " + videoUrlReqErr.message)
-            print("Exiting...")
-            exit()
+            return False
 
         print("Determining best video stream for " + station['name'] + "...")
 
@@ -203,49 +215,107 @@ def generate_m3u():
         outputFile.write('#EXTINF:-1 tvg-id="' + station['name'] + '" tvg-name="' + station['name'] + '" tvg-logo="' + station['logoUrl'] + '" ,' + station['name'] + "\n")
         outputFile.write(bestStream.absolute_uri + "\n")
 
+        current_stream_urls[station['name']] = bestStream.absolute_uri
+
     outputFile.close()
+    return True
 
 
 
 
 def run_telly():
+    global telly_proc
+
     # run Telly
     print("Running Telly.  Configured to run on IP " + CONFIG_LISTEN_ADDY + "...")
 
     # ./telly -b 192.168.29.222:6077
-    telly_proc = subprocess.Popen(["./telly", "-b", CONFIG_LISTEN_ADDY + ":6077"])
+    telly_proc = subprocess.Popen(["./telly", "-b", CONFIG_LISTEN_ADDY + ":6077"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
 
 
 
-
-
-def the_whole_shebang():
-    if (not locast_login()) or (not validate_user()):
-        print("Exiting...")
-        exit()
-    else:
-        generate_m3u()
-        run_telly()
+def clean_exit():
+    exit()
 
 
 
 
+if (not locast_login()) or (not validate_user()) or (not generate_m3u()):
+    print("Exiting...")
+    clean_exit()
+else:
+    run_telly()
 
-the_whole_shebang()
 
 
+telly_check_cnt = 0
+telly_video_processing = False
+restart_telly = False
+quit_app = False
+
+
+check_time = int(time.time()) + 1800
+nbsr = NBSR(telly_proc.stdout)
 
 while True:
-    # check every 30 mins
-    time.sleep(1800)
 
-    # check on the user.  if something's wrong (hopefully only that user login expired)
-    # then quit telly and restart the login
-    if not validate_user():
-        # make sure we're terminating a running process
-        if telly_proc.poll() is None:
-            telly_proc.terminate()
+    # check if telly is still running.  if not, exit the script as well
+    if not (telly_proc.poll() is None):
+        print("Telly process failed.  Exiting...")
+        clean_exit()
 
-        the_whole_shebang()
+    # if we're supposed to restart telly, and we're not processing video anymore, restart telly
+    if (not telly_video_processing) and restart_telly:
+        telly_proc.terminate()
+        run_telly()
+
+    # if we're supposed to quit completely, then exit
+    if (not telly_video_processing) and quit_app:
+        telly_proc.terminate()
+        clean_exit()
+
+
+    # get the telly output, forwarding it to stdout, and checking to see if we're running a stream
+    try:
+        output_line = nbsr.readline(0.1)
+
+        if not output_line is None:
+            print(output_line),
+            if "Serving channel number" in output_line:
+                telly_video_processing = True
+            elif "Stopped streaming" in output_line:
+                telly_video_processing = False
+            # TODO: check if we're processing a stream via ffmpeg
+    except:
+        pass
+        
+
+    
+    # only check these every 30 mins
+    if int(time.time()) > check_time:
+
+        print("Check time triggered - running checks...")
+
+        # check on the user.  if something's wrong (donation, etc), then exit
+        if not validate_user():
+            quit_app = True
+
+
+        # check if the stream urls changed.  if so, reset the telly process if there's no processing being done
+        print("Checking for new stream URLS...")
+
+        old_stream_list = current_stream_urls.copy
+        
+        if generate_m3u():
+            if cmp(current_stream_urls, old_stream_list) != 0:
+                print("NEW URLS DETECTED.  RESTARTING TELLY...")
+                restart_telly = True
+            else:
+                print("URLS are the same, nothing to worry about...")
+        else:
+            quit_app = True
+
+        check_time = int(time.time()) + 1800
+        
         
