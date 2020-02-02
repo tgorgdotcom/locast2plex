@@ -358,7 +358,7 @@ while True:
             print("Will check if a login fixes the issue...")
             if not locast_login(): # try logging in again, to be sure
                 quit_app = True
-            else
+            else:
                 print("Login OK!  Lets see if we can validate now...")
                 if not validate_user():  # if login worked, try validation one last time
                     quit_app = True
