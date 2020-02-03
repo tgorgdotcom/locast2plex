@@ -353,7 +353,7 @@ while True:
         # check if the stream urls changed.  if so, reset the telly process if there's no processing being done
         print("Checking for new stream URLS...")
 
-        old_stream_list = current_stream_urls.copy
+        old_stream_list = current_stream_urls.copy()
         
         if generate_m3u():
             if cmp(current_stream_urls, old_stream_list) != 0:
