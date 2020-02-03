@@ -7,6 +7,7 @@ from nbstreamreader import NonBlockingStreamReader as NBSR
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 
+DEBUG_MODE = os.getenv('debug', False)
 CONFIG_LOCAST_USERNAME = os.getenv('username')
 CONFIG_LOCAST_PASSWORD = os.getenv('password')
 CONFIG_LISTEN_ADDY = os.getenv("listen_addy")
@@ -15,10 +16,13 @@ CURRENT_VERSION = "0.2.0"
 
 
 print("Locast2Plex v" + CURRENT_VERSION)
+if DEBUG_MODE:
+    print("DEBUG MODE ACTIVE")
 
 
 
 telly_proc = None
+telly_stream = None
 current_token = None
 current_location = None
 current_dma = None
@@ -53,9 +57,6 @@ def locast_login():
     except urllib2.HTTPError as httpError:
         print("Error during login: " + httpError.message)
         return False
-    except json.JSONDecodeError as jsonError:
-        print("Error during login: " + httpError.message)
-        return False
     except Exception as loginErr:
         print("Error during login: " + loginErr.message)
         return False
@@ -82,9 +83,6 @@ def validate_user():
         print("Error during user info request: " + urlError.message)
         return False
     except urllib2.HTTPError as httpError:
-        print("Error during user info request: " + httpError.message)
-        return False
-    except json.JSONDecodeError as jsonError:
         print("Error during user info request: " + httpError.message)
         return False
     except Exception as userInfoErr:
@@ -141,9 +139,6 @@ def generate_m3u():
         except urllib2.HTTPError as httpError:
             print("Error during geo IP acquisition: " + httpError.message)
             return False
-        except json.JSONDecodeError as jsonError:
-            print("Error during geo IP acquisition: " + httpError.message)
-            return False
         except Exception as geoIpErr:
             print("Error during geo IP acquisition: " + geoIpErr.message)
             return False
@@ -168,9 +163,6 @@ def generate_m3u():
             print("Error when getting the users's DMA: " + urlError.message)
             return False
         except urllib2.HTTPError as httpError:
-            print("Error when getting the users's DMA: " + httpError.message)
-            return False
-        except json.JSONDecodeError as jsonError:
             print("Error when getting the users's DMA: " + httpError.message)
             return False
         except Exception as dmaErr:
@@ -204,9 +196,6 @@ def generate_m3u():
         except urllib2.HTTPError as httpError:
             print("Error when getting the list of stations: " + httpError.message)
             return False
-        except json.JSONDecodeError as jsonError:
-            print("Error when getting the list of stations: " + httpError.message)
-            return False
         except Exception as stationErr:
             print("Error when getting the list of stations: " + stationErr.message)
             return False
@@ -235,9 +224,6 @@ def generate_m3u():
             print("Error when getting the video URL: " + urlError.message)
             return False
         except urllib2.HTTPError as httpError:
-            print("Error when getting the video URL: " + httpError.message)
-            return False
-        except json.JSONDecodeError as jsonError:
             print("Error when getting the video URL: " + httpError.message)
             return False
         except Exception as videoUrlReqErr:
@@ -280,13 +266,14 @@ def generate_m3u():
 
 
 def run_telly():
-    global telly_proc
+    global telly_proc, telly_stream
 
     # run Telly
     print("Running Telly.  Configured to run on IP " + CONFIG_LISTEN_ADDY + "...")
 
     # ./telly -b 192.168.29.222:6077
     telly_proc = subprocess.Popen(["./telly", "-b", CONFIG_LISTEN_ADDY + ":6077"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    telly_stream = NBSR(telly_proc.stdout)
 
 
 
@@ -310,8 +297,7 @@ restart_telly = False
 quit_app = False
 
 
-check_time = int(time.time()) + 1800
-nbsr = NBSR(telly_proc.stdout)
+check_time = int(time.time()) + (240 if DEBUG_MODE else 1800)
 
 while True:
 
@@ -334,7 +320,7 @@ while True:
 
     # get the telly output, forwarding it to stdout, and checking to see if we're running a stream
     try:
-        output_line = nbsr.readline(0.1)
+        output_line = telly_stream.readline(0.1)
 
         if not output_line is None:
             print(output_line),
@@ -378,6 +364,6 @@ while True:
         else:
             quit_app = True
 
-        check_time = int(time.time()) + 240
+        check_time = int(time.time()) + (240 if DEBUG_MODE else 1800)
         
         

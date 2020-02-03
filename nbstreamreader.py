@@ -1,4 +1,4 @@
-# from https://gist.githubusercontent.com/EyalAr/7915597/raw/92cf79329ad1e62bdd8bdd3c8ed2d5df66065d82/nbstreamreader.py
+# from https://gist.github.com/EyalAr/7915597/
 from threading import Thread
 from Queue import Queue, Empty
 
@@ -23,10 +23,10 @@ class NonBlockingStreamReader:
                 if line:
                     queue.put(line)
                 else:
-                    pass
+                    stream.close()
+                    return
 
-        self._t = Thread(target = _populateQueue,
-                args = (self._s, self._q))
+        self._t = Thread(target = _populateQueue, args = (self._s, self._q))
         self._t.daemon = True
         self._t.start() #start collecting lines from the stream
 
