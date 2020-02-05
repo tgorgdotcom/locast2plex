@@ -8,10 +8,10 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 
 DEBUG_MODE = os.getenv('debug', False)
-CONFIG_LOCAST_USERNAME = os.getenv('username')
-CONFIG_LOCAST_PASSWORD = os.getenv('password')
-CONFIG_LISTEN_ADDY = os.getenv("listen_addy")
-CURRENT_VERSION = "0.2.0"
+CONFIG_LOCAST_USERNAME = os.getenv('username', '')
+CONFIG_LOCAST_PASSWORD = os.getenv('password', '')
+CONFIG_LISTEN_ADDY = os.getenv("listen_addy", '127.0.0.1')
+CURRENT_VERSION = "0.2.2"
 
 
 
@@ -19,6 +19,22 @@ print("Locast2Plex v" + CURRENT_VERSION)
 if DEBUG_MODE:
     print("DEBUG MODE ACTIVE")
 
+
+# check environment vars
+if (CONFIG_LOCAST_USERNAME == ''):
+    print("Usernanme not specified.  Exiting...")
+    exit()
+
+if (CONFIG_LOCAST_PASSWORD == ''):
+    print("Password not specified.  Exiting...")
+    exit()
+
+# make sure we don't just let any value be set for this...
+if (DEBUG_MODE != False):
+    DEBUG_MODE = True
+
+
+# TODO: Validate IP
 
 
 telly_proc = None
@@ -52,10 +68,10 @@ def locast_login():
         loginRes = json.load(loginOpn)
         loginOpn.close()
     except urllib2.URLError as urlError:
-        print("Error during login: " + urlError.message)
+        print("Error during login: " + urlError.reason.strerror)
         return False
     except urllib2.HTTPError as httpError:
-        print("Error during login: " + httpError.message)
+        print("Error during login: " + httpError.reason.strerror)
         return False
     except Exception as loginErr:
         print("Error during login: " + loginErr.message)
@@ -80,10 +96,10 @@ def validate_user():
         userRes = json.load(userOpn)
         userOpn.close()
     except urllib2.URLError as urlError:
-        print("Error during user info request: " + urlError.message)
+        print("Error during user info request: " + urlError.reason.strerror)
         return False
     except urllib2.HTTPError as httpError:
-        print("Error during user info request: " + httpError.message)
+        print("Error during user info request: " + httpError.reason.strerror)
         return False
     except Exception as userInfoErr:
         print("Error during user info request: " + userInfoErr.message)
@@ -134,10 +150,10 @@ def generate_m3u():
             geoRes = json.load(geoOpn)
             geoOpn.close()
         except urllib2.URLError as urlError:
-            print("Error during geo IP acquisition: " + urlError.message)
+            print("Error during geo IP acquisition: " + urlError.reason.strerror)
             return False
         except urllib2.HTTPError as httpError:
-            print("Error during geo IP acquisition: " + httpError.message)
+            print("Error during geo IP acquisition: " + httpError.reason.strerror)
             return False
         except Exception as geoIpErr:
             print("Error during geo IP acquisition: " + geoIpErr.message)
@@ -160,10 +176,10 @@ def generate_m3u():
             dmaRes = json.load(dmaOpn)
             dmaOpn.close()
         except urllib2.URLError as urlError:
-            print("Error when getting the users's DMA: " + urlError.message)
+            print("Error when getting the users's DMA: " + urlError.reason.strerror)
             return False
         except urllib2.HTTPError as httpError:
-            print("Error when getting the users's DMA: " + httpError.message)
+            print("Error when getting the users's DMA: " + httpError.reason.strerror)
             return False
         except Exception as dmaErr:
             print("Error when getting the users's DMA: " + dmaErr.message)
@@ -191,10 +207,10 @@ def generate_m3u():
             stationsOpn.close()
 
         except urllib2.URLError as urlError:
-            print("Error when getting the list of stations: " + urlError.message)
+            print("Error when getting the list of stations: " + urlError.reason.strerror)
             return False
         except urllib2.HTTPError as httpError:
-            print("Error when getting the list of stations: " + httpError.message)
+            print("Error when getting the list of stations: " + httpError.reason.strerror)
             return False
         except Exception as stationErr:
             print("Error when getting the list of stations: " + stationErr.message)
@@ -221,10 +237,10 @@ def generate_m3u():
             videoUrlRes = json.load(videoUrlOpn)
             videoUrlOpn.close()
         except urllib2.URLError as urlError:
-            print("Error when getting the video URL: " + urlError.message)
+            print("Error when getting the video URL: " + urlError.reason.strerror)
             return False
         except urllib2.HTTPError as httpError:
-            print("Error when getting the video URL: " + httpError.message)
+            print("Error when getting the video URL: " + httpError.reason.strerror)
             return False
         except Exception as videoUrlReqErr:
             print("Error when getting the video URL: " + videoUrlReqErr.message)
@@ -297,7 +313,8 @@ restart_telly = False
 quit_app = False
 
 
-check_time = int(time.time()) + (240 if DEBUG_MODE else 1800)
+# check every 1.5 hours
+check_time = int(time.time()) + (240 if DEBUG_MODE else 5400)
 
 while True:
 
@@ -334,10 +351,9 @@ while True:
         
 
     
-    # only check these every 30 mins
-    if int(time.time()) > check_time:
+    if (int(time.time()) > check_time):
 
-        print("Check time triggered - running checks...")
+        print("Check time triggered and video is not processing - running checks...")
 
         # check on the user.  if something's wrong (donation, etc), then exit
         if not validate_user():
@@ -356,7 +372,7 @@ while True:
         old_stream_list = current_stream_urls.copy()
         
         if generate_m3u():
-            if cmp(current_stream_urls, old_stream_list) != 0:
+             if cmp(current_stream_urls, old_stream_list) != 0:
                 print("NEW URLS DETECTED.  RESTARTING TELLY...")
                 restart_telly = True
             else:
@@ -364,6 +380,6 @@ while True:
         else:
             quit_app = True
 
-        check_time = int(time.time()) + (240 if DEBUG_MODE else 1800)
+        check_time = int(time.time()) + (240 if DEBUG_MODE else 5400)
         
         
