@@ -372,7 +372,7 @@ while True:
         old_stream_list = current_stream_urls.copy()
         
         if generate_m3u():
-             if cmp(current_stream_urls, old_stream_list) != 0:
+            if cmp(current_stream_urls, old_stream_list) != 0:
                 print("NEW URLS DETECTED.  RESTARTING TELLY...")
                 restart_telly = True
             else:
