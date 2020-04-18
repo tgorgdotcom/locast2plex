@@ -11,7 +11,7 @@ DEBUG_MODE = os.getenv('debug', False)
 CONFIG_LOCAST_USERNAME = os.getenv('username', '')
 CONFIG_LOCAST_PASSWORD = os.getenv('password', '')
 CONFIG_LISTEN_ADDY = os.getenv("listen_addy", '127.0.0.1')
-CURRENT_VERSION = "0.2.2"
+CURRENT_VERSION = "0.2.3"
 
 
 
@@ -68,15 +68,17 @@ def locast_login():
         loginRes = json.load(loginOpn)
         loginOpn.close()
     except urllib2.URLError as urlError:
-        print("Error during login: " + urlError.reason.strerror)
+        print("Error during login: " + str(urlError.reason))
         return False
     except urllib2.HTTPError as httpError:
-        print("Error during login: " + httpError.reason.strerror)
+        print("Error during login: " + str(httpError.reason))
         return False
-    except Exception as loginErr:
+    except:
+        loginErr = sys.exc_info()[0]
         print("Error during login: " + loginErr.message)
         return False
 
+    print("Logon token is " + loginRes["token"])
     current_token = loginRes["token"]
     return True
 
@@ -96,12 +98,13 @@ def validate_user():
         userRes = json.load(userOpn)
         userOpn.close()
     except urllib2.URLError as urlError:
-        print("Error during user info request: " + urlError.reason.strerror)
+        print("Error during user info request: " + str(urlError.reason))
         return False
     except urllib2.HTTPError as httpError:
-        print("Error during user info request: " + httpError.reason.strerror)
+        print("Error during user info request: " + str(httpError.reason))
         return False
-    except Exception as userInfoErr:
+    except:
+        userInfoErr = sys.exc_info()[0]
         print("Error during user info request: " + userInfoErr.message)
         return False
 
@@ -150,14 +153,16 @@ def generate_m3u():
             geoRes = json.load(geoOpn)
             geoOpn.close()
         except urllib2.URLError as urlError:
-            print("Error during geo IP acquisition: " + urlError.reason.strerror)
+            print("Error during geo IP acquisition: " + str(urlError.reason))
             return False
         except urllib2.HTTPError as httpError:
-            print("Error during geo IP acquisition: " + httpError.reason.strerror)
+            print("Error during geo IP acquisition: " + str(httpError.reason))
             return False
-        except Exception as geoIpErr:
+        except:
+            geoIpErr = sys.exc_info()[0]
             print("Error during geo IP acquisition: " + geoIpErr.message)
             return False
+        print("User location obtained as " + geoRes['latitude'] + '/' + geoRes['longitude'])
         current_location = geoRes
 
 
@@ -176,15 +181,17 @@ def generate_m3u():
             dmaRes = json.load(dmaOpn)
             dmaOpn.close()
         except urllib2.URLError as urlError:
-            print("Error when getting the users's DMA: " + urlError.reason.strerror)
+            print("Error when getting the users's DMA: " + str(urlError.reason))
             return False
         except urllib2.HTTPError as httpError:
-            print("Error when getting the users's DMA: " + httpError.reason.strerror)
+            print("Error when getting the users's DMA: " + str(httpError.reason))
             return False
-        except Exception as dmaErr:
+        except:
+            dmaErr = sys.exc_info()[0]
             print("Error when getting the users's DMA: " + dmaErr.message)
             return False
 
+        print("DMA found as " + dmaRes['DMA'])
         current_dma = dmaRes['DMA']
 
 
@@ -207,16 +214,19 @@ def generate_m3u():
             stationsOpn.close()
 
         except urllib2.URLError as urlError:
-            print("Error when getting the list of stations: " + urlError.reason.strerror)
+            print("Error when getting the list of stations: " + str(urlError.reason))
             return False
         except urllib2.HTTPError as httpError:
-            print("Error when getting the list of stations: " + httpError.reason.strerror)
+            print("Error when getting the list of stations: " + str(httpError.reason))
             return False
-        except Exception as stationErr:
+        except:
+            stationErr = sys.exc_info()[0]
             print("Error when getting the list of stations: " + stationErr.message)
             return False
 
         current_station_list = stationsRes
+
+    # TODO: Convert epg to xml
 
 
 
@@ -237,12 +247,13 @@ def generate_m3u():
             videoUrlRes = json.load(videoUrlOpn)
             videoUrlOpn.close()
         except urllib2.URLError as urlError:
-            print("Error when getting the video URL: " + urlError.reason.strerror)
+            print("Error when getting the video URL: " + str(urlError.reason))
             return False
         except urllib2.HTTPError as httpError:
-            print("Error when getting the video URL: " + httpError.reason.strerror)
+            print("Error when getting the video URL: " + str(httpError.reason))
             return False
-        except Exception as videoUrlReqErr:
+        except:
+            videoUrlReqErr = sys.exc_info()[0]
             print("Error when getting the video URL: " + videoUrlReqErr.message)
             return False
 
@@ -295,7 +306,9 @@ def run_telly():
 
 
 def clean_exit():
-    exit()
+    sys.stderr.flush()
+    sys.stdout.flush()
+    os._exit(0)
 
 
 

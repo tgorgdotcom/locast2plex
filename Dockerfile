@@ -10,4 +10,4 @@ COPY --from=tellytv/telly:dev /app /app/telly
 
 EXPOSE 6077
 ENV username='username' password='password' listen_addy='0.0.0.0'
-ENTRYPOINT ["python", "/app/main.py"]
+ENTRYPOINT ["python", "/app/main.py", "2>&1"]
