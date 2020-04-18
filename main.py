@@ -263,6 +263,8 @@ def generate_m3u():
         
         # find the heighest stream url resolution and save it to the list
         videoUrlM3u = m3u8.load(videoUrlRes['streamUrl'])
+
+        print("Found " + str(len(videoUrlM3u.playlists)) + " Playlists")
         
         for videoStream in videoUrlM3u.playlists:
             if bestStream == None:
@@ -277,14 +279,18 @@ def generate_m3u():
                 (videoStream.stream_info.bandwidth > bestStream.stream_info.bandwidth)):
                 bestStream = videoStream
 
-        print(station['name'] + " will use " + 
-                str(bestStream.stream_info.resolution[0]) + "x" + str(bestStream.stream_info.resolution[1]) + 
-                " resolution at " + str(bestStream.stream_info.bandwidth) + "bps")
+        if bestStream != None:
+            print(station['name'] + " will use " + 
+                    str(bestStream.stream_info.resolution[0]) + "x" + str(bestStream.stream_info.resolution[1]) + 
+                    " resolution at " + str(bestStream.stream_info.bandwidth) + "bps")
 
-        outputFile.write('#EXTINF:-1 tvg-id="' + station['name'] + '" tvg-name="' + station['name'] + '" tvg-logo="' + station['logoUrl'] + '" ,' + station['name'] + "\n")
-        outputFile.write(bestStream.absolute_uri + "\n")
+            outputFile.write('#EXTINF:-1 tvg-id="' + station['name'] + '" tvg-name="' + station['name'] + '" tvg-logo="' + station['logoUrl'] + '" ,' + station['name'] + "\n")
+            outputFile.write(bestStream.absolute_uri + "\n")
 
-        current_stream_urls[station['name']] = bestStream.absolute_uri
+            current_stream_urls[station['name']] = bestStream.absolute_uri
+
+        else:
+            print("No streams found for this station.  Skipping...")
 
     outputFile.close()
     return True
