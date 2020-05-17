@@ -1,13 +1,15 @@
 FROM jrottenberg/ffmpeg:4.0-alpine
 LABEL maintainer="Thomas Gorgolione <thomas@tgorg.com>"
 
-RUN apk  add --no-cache --update python
+RUN apk add --no-cache --update python
 COPY main.py /app/main.py
-COPY nbstreamreader.py /app/nbstreamreader.py
-COPY telly.config.toml /etc/telly/telly.config.toml
+COPY fcc_dma_markets.json /app/fcc_dma_markets.json
+COPY templates.py /app/templates.py
+COPY SSDPServer.py /app/SSDPServer.py
+COPY LocastService.py /app/LocastService.py
+COPY tv_stations.json /app/tv_stations.json
 COPY m3u8/ /app/m3u8/
-COPY --from=tellytv/telly:dev /app /app/telly
+RUN (cat /dev/urandom | tr -dc 'h-z' | fold -w 8 | head -n 1) > /app/service_uuid
 
-EXPOSE 6077
-ENV username='username' password='password' listen_addy='0.0.0.0'
+ENV username='username' password='password' external_addy='0.0.0.0' external_port='6077' debug='false'
 ENTRYPOINT ["python", "/app/main.py", "2>&1"]

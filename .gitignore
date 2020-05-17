@@ -6,3 +6,6 @@ locastChannels.m3u8
 redebug.bat
 telly.exe
 nbstreamreader.pyc
+secret_notes.txt
+.vscode
+*.pyc

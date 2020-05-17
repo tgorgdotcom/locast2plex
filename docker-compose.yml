@@ -1,9 +1,12 @@
 locast2plex:
     image: tgorg/locast2plex
     ports:
-      - "6077:6077"
+      - "${external_port}:6077"
+      - "1900:1900"
     restart: unless-stopped
     environment:
       - username=username
       - password=password
-      - listen_addy=127.0.0.1
+      - external_addy=127.0.0.1
+      - external_port=6077
+      - debug=false
