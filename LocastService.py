@@ -193,10 +193,10 @@ class LocastService:
 
         for fcc_station in fcc_stations:
             # go through each possible station
-            if (fcc_station['nielsen_dma'] == fcc_market) or (fcc_station['nielsen_dma'] == ""):
+            if (fcc_station['nielsen_dma'] == fcc_market):
                 for index, locast_station in enumerate(stationsRes):
                     # if we have a callsign match, add the channel
-                    if fcc_station['fac_callsign'].startswith(locast_station['callSign'][0:3]):
+                    if fcc_station['fac_callsign'].startswith(locast_station['callSign'][0:4]):
                         skip_sub_id = False
                         if fcc_station['tv_virtual_channel'] != "":
                             stationsRes[index]['channel'] = fcc_station['tv_virtual_channel']
@@ -219,7 +219,7 @@ class LocastService:
         noneChannel = 1000
 
         for index, locast_station in enumerate(stationsRes):
-            if locast_station['channel'] == None:
+            if not 'channel' in locast_station:
                 stationsRes[index]['channel'] = str(noneChannel)
                 noneChannel = noneChannel + 1
 

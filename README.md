@@ -79,9 +79,11 @@ As of 0.3, are now two ways to use locast2plex -- either via a Docker container,
 
 ### Incorrect channel numbers
 
-Sometimes locast2plex will not be able to get the correct channel/subchannel number; either a station will receive an outdated channel number, or (for stations we don't recognize at all) their channel numbers assigned sequentially from 1000 on. 
+Sometimes locast2plex will not be able to get the correct channel/subchannel number (perhaps an outdated number or a channel number from a similarly named station outside of the market).  Stations we don't recognize at all have their channel numbers assigned sequentially from 1000 on. 
 
-One thing you can try is to rerun a script I use to pull station information from the FCC.  It's `./fcc_facility/get_facilities.py`, and you can run it under python or in a Docker shell.  The resultant files `fcc_dma_markets_deduped.txt` and `tv_facilities.json` are created when the script complete.  Just copy the `tv_facilities.json` file to the root of the locast2plex folder and re-scan for channels in Plex.  If you are using docker, you will need to run the `get_facilities.py` script from the host, then recreate your container/image.
+For now, the easiest way to fix this is to find the correct channel id by research.  Usually searching the callsign via Google reveals the correct channel number (sometimes we'll see an updated callsign on a the first result as well).  Wikipedia is also extremely helpful here.
+
+In the future, I'd like to implement some additional checks and tests for better channel recognition.  If you run into any problems, feel free to submit an issue so at least I can keep track of it.
   
 
 ### Submitting an issue
