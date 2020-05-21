@@ -8,4 +8,5 @@ telly.exe
 nbstreamreader.pyc
 secret_notes.txt
 .vscode
+service_uuid
 *.pyc
