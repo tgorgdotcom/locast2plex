@@ -4,11 +4,13 @@
 # locast2plex
 A Python script and Docker image to connect locast to Plex's live tv/dvr feature. 
 
-Uses ffmpeg, python, and a few awesome python modules to do most of the heavy lifting
+Uses ffmpeg, python, and a few awesome python modules to do most of the heavy lifting.  A lot of code was inspired from [telly](https://github.com/tellytv/telly) as well.
 
 
 ### FAIR WARNING/HEADS UP:
-I won't have much time to troubleshoot and make changes to this script, so please understand if I am not able to address issues or pull requests.   I will try my best to help though!
+I won't have much time to troubleshoot and make changes to this script, so please understand if I am not able to address issues or pull requests.   I will try my best to help though!  
+
+As always, pull requests are welcome.
 
 
 ## Set up options:
@@ -30,11 +32,13 @@ As of 0.3, are now two ways to use locast2plex -- either via a Docker container,
 
 
 ## Some caveats
-- As of now, EPG is provided solely through Plex.  Perhaps I can investigate getting EPG data through locast later, as the API supports it.
+- As of now, EPG is provided solely through Plex.  Perhaps we can investigate getting EPG data through locast later, as the API supports it.
 
 
 ## Installation
-1. Take note of the network accessible IP address of the server install you are using to create the container.  Note that the default port used is `6077`.  If there is another program/service using this port, you'll need to change the port in the following steps.
+1. Take note of the network accessible IP address of the server install you are using to create the container.  Note that the ports used are:
+    - `6077` (tcp) for the hdhomerun device emulation service (and can be changed)
+    - `1900` (udp) for SSDP discovery (which cannot be changed -- see troubleshooting for workarounds).
 
 2. Choose your installation method:
     - **Via Docker:**  Set up the Docker container.  There are two options:
@@ -46,17 +50,17 @@ As of 0.3, are now two ways to use locast2plex -- either via a Docker container,
         
             Run the following command, making sure you modify the appropriate fields to match your configuration, with `external_addy` being the IP address you took note of earlier:
                 
-            `docker run -e username=username -e password=password -e external_addy=127.0.0.1 -p 6077:6077 tgorg/locast2plex`
+            `docker run -e username=username -e password=password -e external_addy=127.0.0.1 -p 6077:6077 -p 1900:1900/udp tgorg/locast2plex`
 
-            If you are changing the port used, you will need to modify the port number here AND add an `external_port` Docker environmental var, like so:
+            If you are changing port `6077`, you will need to modify the port number in the first `-p` argument  AND add an `external_port` Docker environmental var, like so:
 
-            `docker run -e username=username -e password=password -e external_addy=127.0.0.1 -e external_port=1234 -p 1234:6077 tgorg/locast2plex`
+            `docker run -e username=username -e password=password -e external_addy=127.0.0.1 -e external_port=1234 -p 1234:6077 -p 1900:1900/udp tgorg/locast2plex`
 
     - **Via Terminal/Command Line**: Re-run the following command, replacing the username, password, and ip address to the correct values:
     
       `python main.py -u:username -p:password --debug --addy:127.0.0.1`
 
-      If you need to change the port, use the `--port` argument:
+      If you need to change port `6077`, use the `--port` argument:
       
       `python main.py -u:username -p:password --debug --addy:127.0.0.1 --port:1234`
 
@@ -64,7 +68,7 @@ As of 0.3, are now two ways to use locast2plex -- either via a Docker container,
 3. Configure Plex to use locast2plex: 
     - In the Plex settings on your server or web interface, select Live TV/DVR on the left-hand menu and add a device as you would normally add a HDHomeRun.  
 
-    - You must enter the address manually as autodetection will not work here.  The address will be the value you set as the `external_addy` as well as the port (for example 127.0.0.1:6077).  
+    - You may need to enter the address manually as SSDP autodiscovery is buggy at the moment.  The address will be the value you set as the `external_addy` as well as the port (for example 127.0.0.1:6077).  
 
     - You may or may not see a box appear showing the recognized locast2plex instance, but even if this is not the case, you should be able to use the "Continue" button on the bottom right.
 
@@ -83,8 +87,20 @@ Sometimes locast2plex will not be able to get the correct channel/subchannel num
 
 For now, the easiest way to fix this is to find the correct channel id by research.  Usually searching the callsign via Google reveals the correct channel number (sometimes we'll see an updated callsign on a the first result as well).  Wikipedia is also extremely helpful here.
 
-In the future, I'd like to implement some additional checks and tests for better channel recognition.  If you run into any problems, feel free to submit an issue so at least I can keep track of it.
+In the future, I'd like to implement some additional checks and tests for better channel recognition.  If you run into any problems, feel free to submit an issue so at least we can keep track of it.
+
+
+### Working around port 1900
+
+SSDP is used to *try* to enable Plex autodetection of the locast2plex instance, but it's currently buggy at the moment.  If you're using Docker, you can remove the `-p 1900:1900/udp` part of the docker command like so:
+
+  `docker run -e username=username -e password=password -e external_addy=127.0.0.1 -p 6077:6077 tgorg/locast2plex`
+
+For `docker-compose` users, delete the following line from `docker-compose.yml`:
+    
+  `- "1900:1900/udp"`
   
+For now, there is no option for straight Python users to disable port 1900.  Let me know in github if this is an important option to implement.
 
 ### Submitting an issue
 

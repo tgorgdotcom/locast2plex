@@ -2,7 +2,7 @@ locast2plex:
     image: tgorg/locast2plex
     ports:
       - "${external_port}:6077"
-      - "1900:1900"
+      - "1900:1900/udp"
     restart: unless-stopped
     environment:
       - username=username
