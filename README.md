@@ -18,7 +18,7 @@ As of 0.3, are now two ways to use locast2plex -- either via a Docker container,
 
 
 ## Prerequisites
-- Server ("always-on" computer) that is either network accessible to the Plex server, or running on the same server as Plex.  
+- Server ("always-on" computer) that is either network accessible to the Plex server, or running on the same server as Plex.  Make sure the server you choose is suitable for handling video.
 
 - If you're using Docker, then make sure Docker is installed on the server. [See here for details on getting started with Docker](https://docs.docker.com/get-started/).
 
@@ -43,7 +43,7 @@ As of 0.3, are now two ways to use locast2plex -- either via a Docker container,
 2. Choose your installation method:
     - **Via Docker:**  Set up the Docker container.  There are two options:
         1. Docker Compose:
-            - Modify the `docker-compose.yml` file to use the correct username, password, and the IP address (and port, if necessary) you took note of earlier.
+            - Modify the `docker-compose.env` file to use the correct username, password, and the IP address (and port, if necessary) you took note of earlier.
             - Run `docker-compose up`
 
         2. Docker Command:
@@ -104,4 +104,4 @@ For now, there is no option for straight Python users to disable port 1900.  Let
 
 ### Submitting an issue
 
-When submitting an issue, make sure to take note of the docker or command line output.  
+When submitting an issue, make sure to take note of the docker or command line output.  **Note that logs reveal username and approximate location information (in latitude/longitude as well as Locast's Nielsen market id), so be sure to look through what you post and clear out any data you want hidden before posting.**

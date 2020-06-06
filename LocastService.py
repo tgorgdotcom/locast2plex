@@ -1,4 +1,4 @@
-import json, urllib2, time, os, sys
+import json, urllib2, time, os, sys, string
 import m3u8
 
 
@@ -8,12 +8,17 @@ class LocastService:
     current_token = None
     current_location = None
     current_dma = None
-    fcc_station_file_path = None
+    base_data_folder = None
 
 
 
-    def __init__(self, station_file_path):
-        self.fcc_station_file_path = station_file_path
+
+
+    def __init__(self, base_folder, mock_location):
+        self.base_data_folder = base_folder
+
+        if not mock_location == None:
+            self.current_location = mock_location
 
 
 
@@ -45,7 +50,6 @@ class LocastService:
             print("Error during login: " + loginErr.message)
             return False
 
-        print("Logon token is " + loginRes["token"])
         self.current_token = loginRes["token"]
         return True
 
@@ -184,46 +188,195 @@ class LocastService:
         # the FCC facilities list
         print("Loading FCC Stations list...")
 
-        with open(self.fcc_station_file_path, "r") as fcc_station_file_obj:
+        with open(self.base_data_folder + "tv_stations.json", "r") as fcc_station_file_obj:
             fcc_stations = json.load(fcc_station_file_obj)
             with open("fcc_dma_markets.json", "r") as fcc_dma_file_obj:
                 dma_mapping = json.load(fcc_dma_file_obj)
             fcc_market = dma_mapping[str(self.current_dma)]
 
 
-        for fcc_station in fcc_stations:
-            # go through each possible station
-            if (fcc_station['nielsen_dma'] == fcc_market):
-                for index, locast_station in enumerate(stationsRes):
-                    # if we have a callsign match, add the channel
-                    if fcc_station['fac_callsign'].startswith(locast_station['callSign'][0:4]):
-                        skip_sub_id = False
-                        if fcc_station['tv_virtual_channel'] != "":
-                            stationsRes[index]['channel'] = fcc_station['tv_virtual_channel']
-                        else:
-                            stationsRes[index]['channel'] = fcc_station['fac_channel']
-                            skip_sub_id = True
-                        
-                        # locast usually adds a number after subchannels in it's callsign.  get the 
-                        # numeric value and append it to the channel value
-                        # TODO: don't add a substation if it's an analog channel
-                        if not skip_sub_id:
-                            if (len(locast_station['callSign']) > 4):
-                                stationsRes[index]['channel'] = stationsRes[index]['channel'] + '.' + locast_station['callSign'][4:]
-                            else:
-                                stationsRes[index]['channel'] = stationsRes[index]['channel'] + '.1'
 
-        
-        # mark stations that did not get a channel, but outside of the normal range.
-        # the user will have to weed these out in Plex...
+        with open(self.base_data_folder + 'known_stations.json', "r") as known_stations_file_obj:
+            known_stations = json.load(known_stations_file_obj)
+
+
         noneChannel = 1000
 
+
         for index, locast_station in enumerate(stationsRes):
-            if not 'channel' in locast_station:
-                stationsRes[index]['channel'] = str(noneChannel)
-                noneChannel = noneChannel + 1
+
+            # check if this is a [channel] [station name] result in the callsign
+            # whether the first char is a number (checking for result like "2.1 CBS")
+            try:
+                # if number, get the channel and name -- we're done!
+                stationsRes[index]['channel'] = float(locast_station['callSign'].split()[0])
+                
+            except ValueError:
+                # result like "WDPN" or "CBS" in the callsign field, or the callsign in the name field
+                # then we'll search the callsign in a few different lists to get the station channel
+                # note: callsign field usually has the most recent data if it contains an actual callsign
+                skip_sub_id = False
+
+                # callsign from "callsign" field
+                callsign_result = self.detect_callsign(locast_station['callSign'])
+
+                # callsign from "name" field - usually in "[callsign][TYPE][subchannel]" format
+                # example: WABCDT2
+                alt_callsign_result = self.detect_callsign(locast_station['name'])
+
+                
+                # check the known station json that we maintain whenever locast's
+                # reported station is iffy
+                # first look via "callsign" value
+                ks_result = self.find_known_station(locast_station, 'callSign', known_stations)
+                if ks_result != None:
+                    stationsRes[index]['channel'] = ks_result['channel']
+                    skip_sub_id = ks_result['skip_sub']
+
+
+                # then check "name"
+                if (not 'channel' in stationsRes[index]):
+                    ks_result = self.find_known_station(locast_station, 'name', known_stations)
+                    if ks_result != None:
+                        stationsRes[index]['channel'] = ks_result['channel']
+                        skip_sub_id = ks_result['skip_sub']
+
+
+                # if we couldn't find anything look through fcc list for a match.
+                # first by searching the callsign found in the "callsign" field
+                if (not 'channel' in stationsRes[index]) and callsign_result['verified']:
+                    result = self.find_fcc_station(callsign_result['callsign'], fcc_market, fcc_stations)
+                    if result != None:
+                        stationsRes[index]['channel'] = result['channel']
+                        skip_sub_id = result['analog']
+
+                
+                # if we still couldn't find it, see if there's a match via the
+                # "name" field
+                if (not 'channel' in stationsRes[index]) and alt_callsign_result['verified']:
+                    result = self.find_fcc_station(alt_callsign_result['callsign'], fcc_market, fcc_stations)
+                    if result != None:
+                        stationsRes[index]['channel'] = result['channel']
+                        skip_sub_id = result['analog']
+
+                            
+                # locast usually adds a number in it's callsign (in either field).  that
+                # number is the subchannel
+                if (not skip_sub_id) and ('channel' in stationsRes[index]):
+                    if callsign_result['verified'] and (callsign_result['subchannel'] != None):
+                        stationsRes[index]['channel'] = stationsRes[index]['channel'] + '.' + callsign_result['subchannel']
+                    elif alt_callsign_result['verified'] and (alt_callsign_result['subchannel'] != None):
+                        stationsRes[index]['channel'] = stationsRes[index]['channel'] + '.' + alt_callsign_result['subchannel']
+                    else:
+                        stationsRes[index]['channel'] = stationsRes[index]['channel'] + '.1'
+
+
+                # mark stations that did not get a channel, but outside of the normal range.
+                # the user will have to weed these out in Plex...
+                if (not 'channel' in stationsRes[index]):
+                    stationsRes[index]['channel'] = str(noneChannel)
+                    noneChannel = noneChannel + 1
+
 
         return stationsRes
+
+
+
+
+
+
+
+
+    def detect_callsign(self, compare_string):
+        verified = False
+        station_type = None
+        subchannel = None
+        backIndex = -1
+
+        while compare_string[backIndex].isnumeric():
+            backIndex = backIndex - 1
+
+        # if there is a number, backIndex will be > 1
+        if backIndex != -1:
+            subchannel = compare_string[(backIndex + 1):]
+            compare_string = compare_string[:(backIndex + 1)]
+        else:
+            compare_string = compare_string
+
+        if len(compare_string) > 4:
+            station_type = compare_string[-2:]
+            compare_string = compare_string[:-2]
+
+        # verify if text from "callsign" is an actual callsign
+        if ( ((compare_string[0] == 'K') or (compare_string[0] == 'W')) and 
+             ((len(compare_string) == 3) or (len(compare_string) == 4)) ):
+            verified = True
+
+        return {
+            "verified": verified,
+            "station_type": station_type,
+            "subchannel": subchannel,
+            "callsign": compare_string
+        }
+
+
+
+
+
+    def find_known_station(self, station, searchBy, known_stations):
+
+        for known_station in known_stations:
+            if ( (known_station[searchBy] == station[searchBy]) and 
+                 (known_station['dma'] == station['dma']) ):
+
+                returnChannel = known_station['rootChannel']
+
+                if known_station['subChannel'] != None:
+                    return {
+                        "channel": returnChannel + '.' + known_station['subChannel'],
+                        "skip_sub": True
+                    }
+
+                elif known_station['analog']:
+                    return {
+                        "channel": returnChannel,
+                        "skip_sub": True
+                    }
+
+                return {
+                    "channel": returnChannel,
+                    "skip_sub": False
+                }
+
+        return None
+
+
+
+
+
+    def find_fcc_station(self, callsign, market, fcc_stations):
+        for fcc_station in fcc_stations:
+            # go through each possible station
+            if (fcc_station['nielsen_dma'] == market):
+                # split fcc callsign away from it's dash, if one exists, then compare
+                compare_callsign = fcc_station['fac_callsign'].split('-')[0]
+                if compare_callsign == callsign:
+                    # if we have a callsign match, add the channel
+                    if fcc_station['tv_virtual_channel'] != "":
+                        return {
+                            "channel": fcc_station['tv_virtual_channel'],
+                            "analog": False
+                        }
+                    else:
+                        # if we find this to be analog, don't apply subchannel
+                        return {
+                            "channel": fcc_station['fac_channel'],
+                            "analog": True
+                        }
+
+        return None
+
+
 
 
 
@@ -260,29 +413,33 @@ class LocastService:
         # find the heighest stream url resolution and save it to the list
         videoUrlM3u = m3u8.load(videoUrlRes['streamUrl'])
 
+        
+
         print("Found " + str(len(videoUrlM3u.playlists)) + " Playlists")
         
-        for videoStream in videoUrlM3u.playlists:
-            if bestStream == None:
-                bestStream = videoStream
+        if len(videoUrlM3u.playlists) > 0:
+            for videoStream in videoUrlM3u.playlists:
+                if bestStream == None:
+                    bestStream = videoStream
 
-            elif ((videoStream.stream_info.resolution[0] > bestStream.stream_info.resolution[0]) and 
-                (videoStream.stream_info.resolution[1] > bestStream.stream_info.resolution[1])):
-                bestStream = videoStream
+                elif ((videoStream.stream_info.resolution[0] > bestStream.stream_info.resolution[0]) and 
+                    (videoStream.stream_info.resolution[1] > bestStream.stream_info.resolution[1])):
+                    bestStream = videoStream
 
-            elif ((videoStream.stream_info.resolution[0] == bestStream.stream_info.resolution[0]) and 
-                (videoStream.stream_info.resolution[1] == bestStream.stream_info.resolution[1]) and
-                (videoStream.stream_info.bandwidth > bestStream.stream_info.bandwidth)):
-                bestStream = videoStream
+                elif ((videoStream.stream_info.resolution[0] == bestStream.stream_info.resolution[0]) and 
+                    (videoStream.stream_info.resolution[1] == bestStream.stream_info.resolution[1]) and
+                    (videoStream.stream_info.bandwidth > bestStream.stream_info.bandwidth)):
+                    bestStream = videoStream
+        
 
-        if bestStream != None:
-            print(station_id + " will use " + 
-                    str(bestStream.stream_info.resolution[0]) + "x" + str(bestStream.stream_info.resolution[1]) + 
-                    " resolution at " + str(bestStream.stream_info.bandwidth) + "bps")
+            if bestStream != None:
+                print(station_id + " will use " + 
+                        str(bestStream.stream_info.resolution[0]) + "x" + str(bestStream.stream_info.resolution[1]) + 
+                        " resolution at " + str(bestStream.stream_info.bandwidth) + "bps")
 
-            return bestStream.absolute_uri
+                return bestStream.absolute_uri
 
         else:
-            print("No streams found for this station.  Skipping...")
-            return False
+            print("No variant streams found for this station.  Assuming single stream only.")
+            return videoUrlRes['streamUrl']
 

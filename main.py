@@ -306,7 +306,14 @@ if __name__ == '__main__':
 
 
     ffmpeg_proc = None
-    locast = LocastService.LocastService("tv_stations.json")
+    
+    mock_location = None
+    #mock_location = {
+    #    "latitude": "47.6062",
+    #    "longitude": "-122.3321"
+    #}
+#
+    locast = LocastService.LocastService("./", mock_location)
     station_list = None
 
     
