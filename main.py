@@ -245,7 +245,7 @@ if __name__ == '__main__':
 
     LISTEN_ADDY = "0.0.0.0"
     LISTEN_PORT = "6077"
-    CURRENT_VERSION = "0.4.0"
+    CURRENT_VERSION = "0.4.1"
     DEVICE_UUID = "12345678"
     CONCURRENT_LISTENERS = 10
 
