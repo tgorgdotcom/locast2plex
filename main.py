@@ -1,4 +1,4 @@
-import subprocess, os, sys, random, threading, socket, time, SocketServer
+import subprocess, os, sys, random, threading, socket, time, errno, SocketServer
 import SSDPServer
 import LocastService
 from templates import templates
@@ -96,13 +96,16 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
 
             while True:
                 if not videoData:
+                    ffmpeg_proc.terminate()
                     break
                 else:
                     # from https://stackoverflow.com/questions/9932332
                     try:
                         self.wfile.write(videoData)
                         time.sleep(0.1)
-                    except (socket.error):
+                    except IOError as e:
+                        if e.errno == errno.EPIPE:
+                            ffmpeg_proc.terminate()
                         break
 
                 videoData = ffmpeg_proc.stdout.read(1024000)
