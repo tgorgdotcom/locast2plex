@@ -25,7 +25,7 @@ As of 0.3, are now two ways to use locast2plex -- either via a Docker container,
 - If you choose to run this as a command line program, the following OSs and programs are required:
     - Windows (Mac and Linux probably work too, but this is untested)
     - Python 2.7.x
-    - ffmpeg (if running under Mac or Linux)
+    - ffmpeg (if running under Mac, Linux, or Windows Command Line)
 
 
 - A locast account that you have donated to (non donated accounts have streams that terminate after 5-10 mins, so it won't work well for this setup).  Also be sure you are running the server from the same location that you want channels for.
