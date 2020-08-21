@@ -96,7 +96,6 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
 
             while True:
                 if not videoData:
-                    ffmpeg_proc.terminate()
                     break
                 else:
                     # from https://stackoverflow.com/questions/9932332
@@ -104,13 +103,22 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
                         self.wfile.write(videoData)
                         time.sleep(0.1)
                     except IOError as e:
+                        # Check we hit a broken pipe when trying to write back to the client
                         if e.errno == errno.EPIPE:
+                            # Send SIGTERM to shutdown ffmpeg
                             ffmpeg_proc.terminate()
-                        break
+                            # ffmpeg writes a bit of data out to stderr after it terminates, 
+                            # need to read any hanging data to prevent a zombie process. 
+                            ffmpeg_proc.communicate()
+                            break
+                        else:
+                            raise
+                        
 
                 videoData = ffmpeg_proc.stdout.read(1024000)
 
             ffmpeg_proc.terminate()
+            ffmpeg_proc.communicate()
             
 
 
