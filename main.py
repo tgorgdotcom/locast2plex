@@ -26,10 +26,12 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
     address = ""
     port = ""
     uuid = ""
+    tuner_count = 3
     templates = {}
     station_scan = False
     station_list = {}
     local_locast = None
+    bytes_per_read = 1024000
 
     def do_GET(self): 
         base_url = self.address + ':' + self.port
@@ -45,7 +47,7 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header('Content-type','application/json')
             self.end_headers()
-            self.wfile.write(self.templates['jsonDiscover'].format(self.uuid, base_url))
+            self.wfile.write(self.templates['jsonDiscover'].format(self.uuid, base_url, tuner_count))
 
         elif self.path == '/lineup_status.json':
             self.send_response(200)
@@ -92,7 +94,7 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
 
             
             # get initial videodata. if that works, then keep grabbing it
-            videoData = ffmpeg_proc.stdout.read(1024000)
+            videoData = ffmpeg_proc.stdout.read(self.bytes_per_read)
 
             while True:
                 if not videoData:
@@ -102,10 +104,11 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
                     try:
                         self.wfile.write(videoData)
                         time.sleep(0.1)
-                    except (socket.error):
+                    except IOError as e:
+                        print("Broken pipe detected.")
                         break
 
-                videoData = ffmpeg_proc.stdout.read(1024000)
+                videoData = ffmpeg_proc.stdout.read(self.bytes_per_read)
 
             ffmpeg_proc.terminate()
             
@@ -199,6 +202,8 @@ class PlexHttpServer(threading.Thread):
         PlexHttpHandler.address = config["host"][0]
         PlexHttpHandler.port = config["host"][1]
         PlexHttpHandler.uuid = config["uuid"]
+        PlexHttpHandler.tuner_count = config["tuner_count"]
+        PlexHttpHandler.bytes_per_read = config["bytes_per_read"]
         PlexHttpHandler.templates = templates
         PlexHttpHandler.station_list = station_list
         PlexHttpHandler.local_locast = locast_service
@@ -245,15 +250,17 @@ if __name__ == '__main__':
 
     LISTEN_ADDY = "0.0.0.0"
     LISTEN_PORT = "6077"
-    CURRENT_VERSION = "0.4.1"
+    CURRENT_VERSION = "0.4.3"
     DEVICE_UUID = "12345678"
     CONCURRENT_LISTENERS = 10
+    TUNER_COUNT = 3
 
     DEBUG_MODE = os.getenv('debug', False)
     CONFIG_LOCAST_USERNAME = os.getenv('username', '')
     CONFIG_LOCAST_PASSWORD = os.getenv('password', '')
     HOST_PORT = os.getenv("external_port", '6077')
     HOST_ADDY = os.getenv("external_addy", '0.0.0.0')
+    BYTES_PER_READ = 1152000
 
     for argument in sys.argv:
         if argument.startswith('-u:'):
@@ -264,6 +271,13 @@ if __name__ == '__main__':
             DEBUG_MODE = True
         elif argument.startswith('--port:'):
             HOST_PORT = argument[7:]
+        elif argument.startswith('--tuners:'):
+            tmp_tuners = argument[9:]
+            if (int(tmp_tuners) >= 4) or (int(tmp_tuners) < 1):
+                print("Tuner count set outside of 1-4 range.  Setting to default")
+                TUNER_COUNT = 3
+            else:
+                TUNER_COUNT = int(tmp_tuners)
         elif argument.startswith('--addy:'):
             HOST_ADDY = argument[7:]
 
@@ -272,6 +286,7 @@ if __name__ == '__main__':
     if DEBUG_MODE:
         print("DEBUG MODE ACTIVE")
 
+    print("Tuner count set to " + str(TUNER_COUNT))
 
     # generate UUID here for when we are not using docker
     if not os.path.exists(os.path.curdir + '/service_uuid'):
@@ -333,7 +348,9 @@ if __name__ == '__main__':
             config = {
                 "host": (HOST_ADDY, HOST_PORT),
                 "listen": (LISTEN_ADDY, LISTEN_PORT),
-                "uuid": DEVICE_UUID
+                "uuid": DEVICE_UUID,
+                "tuner_count": TUNER_COUNT,
+                "bytes_per_read": BYTES_PER_READ
             }
 
             for i in range(CONCURRENT_LISTENERS):

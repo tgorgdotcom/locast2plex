@@ -49,7 +49,7 @@ templates = {
     "Manufacturer": "Silicondust",
     "ModelNumber": "HDHR3-US",
     "FirmwareName": "hdhomerun3_atsc",
-    "TunerCount": 2,
+    "TunerCount": {2},
     "FirmwareVersion": "20150826",
     "DeviceID": "{0}",
     "DeviceAuth": "locast2plex",
@@ -60,7 +60,7 @@ templates = {
 
 
     # mostly pulled from tellytv
-    # Don't need curly brece escape here
+    # Don't need curly braces to escape here
     'jsonLineupStatus': """{
     "ScanInProgress": true,
     "Progress": 50,

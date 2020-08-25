@@ -1,5 +1,4 @@
 debug.bat
-ffmpeg.exe
 ffplay.exe
 ffprobe.exe
 locastChannels.m3u8

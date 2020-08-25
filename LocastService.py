@@ -82,15 +82,16 @@ class LocastService:
 
         print("User Info obtained.")
         print("User didDonate: " + str(userRes['didDonate']))
-        print("User donationExpire: " + str(userRes['donationExpire'] / 1000))
-
 
         # Check if donated
         if not userRes['didDonate']:
             print("Error!  User must donate for this to work.")
             return False
+
+        print("User donationExpire: " + str(userRes['donationExpire'] / 1000))
+
         # Check if donation has expired
-        elif ((userRes['donationExpire'] / 1000) < int(time.time())):
+        if ((userRes['donationExpire'] / 1000) < int(time.time())):
             print("Error!  User's donation ad-free period has expired.")
             return False
 
@@ -145,7 +146,12 @@ class LocastService:
                 print("Error when getting the users's DMA: " + dmaErr.message)
                 return False
 
-            print("DMA found as " + dmaRes['DMA'])
+            print("DMA found as " + dmaRes['DMA'] + ": " + dmaRes['name'])
+
+            if (dmaRes['active'] == False):
+                print("DMA not available in Locast yet.  Exiting...")
+                return False
+
             self.current_dma = dmaRes['DMA']
 
 
@@ -192,7 +198,12 @@ class LocastService:
             fcc_stations = json.load(fcc_station_file_obj)
             with open("fcc_dma_markets.json", "r") as fcc_dma_file_obj:
                 dma_mapping = json.load(fcc_dma_file_obj)
-            fcc_market = dma_mapping[str(self.current_dma)]
+
+            try:
+                fcc_market = dma_mapping[str(self.current_dma)]
+            except KeyError:
+                print("No DMA to FCC mapping found.  Poke the developer to get it into locast2plex.")
+                return False
 
 
 
