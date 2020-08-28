@@ -209,7 +209,12 @@ class LocastService:
             # whether the first char is a number (checking for result like "2.1 CBS")
             try:
                 # if number, get the channel and name -- we're done!
-                stationsRes[index]['channel'] = float(locast_station['callSign'].split()[0])
+                # Check if the the callsign has a float (x.x) value. Save as a 
+                # string though, to preserve any trailing 0s as on reported
+                # on https://github.com/tgorgdotcom/locast2plex/issues/42
+
+                assert(float(locast_station['callSign'].split()[0]))
+                stationsRes[index]['channel'] = locast_station['callSign'].split()[0]
                 
             except ValueError:
                 # result like "WDPN" or "CBS" in the callsign field, or the callsign in the name field
