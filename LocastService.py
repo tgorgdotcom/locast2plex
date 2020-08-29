@@ -22,7 +22,16 @@ class LocastService:
 
 
 
-    def login(self, username, password):
+    def login(self, username, password):        
+
+        # check environment vars
+        if (username is None):
+            print("Usernanme not specified in config.ini.  Exiting...")
+            return False
+
+        if (password is None):
+            print("Password not specified in config.ini.  Exiting...")
+            return False
 
         # login
         print("Logging into Locast using username " + username + "...")

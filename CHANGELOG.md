@@ -7,6 +7,7 @@
  - Added ffmpeg.exe for Windows users
  - Merge fix to end ffmpeg zombie processes (thanks @FozzieBear!)
  - Add MINNEAPOLIS-ST. PAUL (thanks @steventwheeler!)
+ - Fix for channel detection on subchannels ending in zero.
 
 ## 0.4.2
  - Enabled Miami and West Palm Beach markets

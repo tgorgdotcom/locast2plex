@@ -52,7 +52,7 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(self.templates['jsonDiscover'].format(self.reporting_model, 
                                                                    self.reporting_firmware_name, 
-                                                                   tuner_count,
+                                                                   self.tuner_count,
                                                                    self.reporting_firmware_ver, 
                                                                    self.uuid, 
                                                                    base_url))
@@ -290,7 +290,9 @@ if __name__ == '__main__':
     config_handler.read('config.ini')
 
     try:
-        config.update(config_handler.options("main"))
+        for option_name in config_handler.options("main"):
+            config[option_name] = config_handler.get("main", option_name)
+    except:
         pass
 
     LISTEN_ADDY = "0.0.0.0"
@@ -321,7 +323,7 @@ if __name__ == '__main__':
     print("Tuner count set to " + str(TUNER_COUNT))
 
     # generate UUID here for when we are not using docker
-    if DEVICE_UUID is '':
+    if DEVICE_UUID is None:
         print("No UUID found.  Generating one now...")
         # from https://pynative.com/python-generate-random-string/
         # create a string that wouldn't be a real device uuid for 
@@ -332,17 +334,6 @@ if __name__ == '__main__':
 
 
     print("UUID set to: " + DEVICE_UUID + "...")
-
-
-    # check environment vars
-    if (LOCAST_USERNAME == ''):
-        print("Usernanme not specified.  Exiting...")
-        exit()
-
-    if (LOCAST_PASSWORD == ''):
-        print("Password not specified.  Exiting...")
-        exit()
-
 
 
     ffmpeg_proc = None
@@ -366,7 +357,7 @@ if __name__ == '__main__':
         station_list = locast.get_stations()
 
         try:
-            print("Starting device server on " + config['docker_accessible_ip'] + ":" + config['docker_accessible_port'])
+            print("Starting device server on " + config['plex_accessible_ip'] + ":" + config['plex_accessible_port'])
             serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             serverSocket.bind((LISTEN_ADDY, int(LISTEN_PORT)))
