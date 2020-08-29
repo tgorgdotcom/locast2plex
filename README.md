@@ -56,6 +56,12 @@ As of 0.3, are now two ways to use locast2plex -- either via a Docker container,
     password=<locast password>
     plex_accessible_ip=<ip found in step 1>
     ```
+    
+    If you are changing port `6077`, you will need to add an `plex_accessible_port` entry in the config file, like so:
+    ```
+    plex_accessible_port=<new port number>
+    ```
+
     You can also use the config_example.ini found in the source files.  There's some interesting additional options commented out here that you can look at as well.
 
 3. Choose your installation method:
@@ -63,6 +69,13 @@ As of 0.3, are now two ways to use locast2plex -- either via a Docker container,
         1. Docker Compose:
             - Download the latest locast2plex release files on GitHub and extract to a folder
             - Copy the newly created config file into the newly created release folder, making sure it's named `config.ini`.
+            - Modify the `docker-compose.yml` file your liking.  If you are changing port `6077`, you will also need to modify the port number in the first ports option, like so:
+
+            ```
+            ports:
+            - "12345:6077"
+            ```
+
             - Run `docker-compose up` in the release folder.
 
         2. Docker Command (no need to download anything):
@@ -71,20 +84,10 @@ As of 0.3, are now two ways to use locast2plex -- either via a Docker container,
                 
             `docker run -v <full path to config file>:/app/config.ini -p 6077:6077 -p 1900:1900/udp tgorg/locast2plex`
 
-            If you are changing port `6077`, you will need to modify the port number in the first `-p` argument  AND add an `plex_accessible_port` entry in the config file, like so:
+            If you are changing port `6077`, you will also need to modify the port number in the first `-p` argument, like so:
 
-            <sub>Command:</sub>
+            `docker run -v <full path to config file>:/app/config.ini -p 12345:6077 -p 1900:1900/udp tgorg/locast2plex`
 
-            `docker run -v <full path to config file>:/app/config.ini -p 1234:6077 -p 1900:1900/udp tgorg/locast2plex`
-
-            <sub>config.ini:</sub>
-            ```
-            [main]
-            username=<locast username>
-            password=<locast password>
-            plex_accessible_ip=<ip found in step 1>
-            plex_accessible_port=<new port number>
-            ```
 
     - **Via Terminal/Command Line**: 
         - Download the latest locast2plex release files on GitHub and extract to a folder
@@ -139,6 +142,7 @@ When submitting an issue, make sure to take note of the docker or command line o
 ## Credits
 #### A big THANK YOU to all who have co-developed locast2plex, and/or are answering issues in GitHub (sorry if I missed anyone!):
 
-CTJohnK, diana1055, FozzieBear, jcastilloalonso
+CTJohnK, diana1055, FozzieBear, jcastilloalonso, steventwheeler
+
 
 

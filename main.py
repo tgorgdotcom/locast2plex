@@ -382,6 +382,8 @@ if __name__ == '__main__':
             ssdpServer.daemon = True
             ssdpServer.start()
 
+            print("locast2plex is running and active!")
+
             # wait forever
             while True:
                 time.sleep(3600)

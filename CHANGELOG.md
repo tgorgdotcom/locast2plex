@@ -1,4 +1,10 @@
 # CHANGELOG
+
+## 0.5.1
+ - Added success message at the end to indicate successful running
+ - Fixed bug in docker-compose.yml
+ - Updated readme for better clarity
+
 ## 0.5.0
  - Migrated environment settings to ini file -- should fix issues with special 
    characters in username/password, security concerns (thanks for the suggestion 
