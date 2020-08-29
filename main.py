@@ -1,4 +1,4 @@
-import subprocess, os, sys, random, threading, socket, time, errno, SocketServer
+import subprocess, os, sys, random, threading, socket, time, errno, SocketServer, ConfigParser
 import SSDPServer
 import LocastService
 from templates import templates
@@ -26,6 +26,9 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
     address = ""
     port = ""
     uuid = ""
+    reporting_model = ""
+    reporting_firmware_name = ""
+    reporting_firmware_ver = ""
     tuner_count = 3
     templates = {}
     station_scan = False
@@ -41,13 +44,18 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header('Content-type','application/xml')
             self.end_headers()
-            self.wfile.write(self.templates['xmlDiscover'].format(self.uuid, base_url))
+            self.wfile.write(self.templates['xmlDiscover'].format(self.reporting_model, self.uuid, base_url))
 
         elif self.path == '/discover.json':
             self.send_response(200)
             self.send_header('Content-type','application/json')
             self.end_headers()
-            self.wfile.write(self.templates['jsonDiscover'].format(self.uuid, base_url, tuner_count))
+            self.wfile.write(self.templates['jsonDiscover'].format(self.reporting_model, 
+                                                                   self.reporting_firmware_name, 
+                                                                   tuner_count,
+                                                                   self.reporting_firmware_ver, 
+                                                                   self.uuid, 
+                                                                   base_url))
 
         elif self.path == '/lineup_status.json':
             self.send_response(200)
@@ -217,6 +225,9 @@ class PlexHttpServer(threading.Thread):
         PlexHttpHandler.templates = templates
         PlexHttpHandler.station_list = station_list
         PlexHttpHandler.local_locast = locast_service
+        PlexHttpHandler.reporting_model = config["reporting_model"]
+        PlexHttpHandler.reporting_firmware_name = config["reporting_firmware_name"]
+        PlexHttpHandler.reporting_firmware_ver = config["reporting_firmware_ver"]
 
         self.address = config["listen"][0]
         self.port = config["listen"][1]
@@ -258,98 +269,104 @@ if __name__ == '__main__':
     # set to directory of script
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
+
+    config = {
+        'locast_username': None,
+        'locast_password': None,
+        'override_latitude': None,
+        'override_longitude': None,
+        'bytes_per_read': '1152000',
+        'plex_accessible_ip': '0.0.0.0',
+        'plex_accessible_port': '6077',
+        'tuner_count': '3',
+        'uuid': None,
+        'reporting_model': 'HDHR3-US',
+        'reporting_firmware_name': 'hdhomerun3_atsc',
+        'reporting_firmware_ver': '20150826',
+        'concurrent_listeners': '10' #to convert
+    }
+
+    config_handler = ConfigParser.RawConfigParser()
+    config_handler.read('config.ini')
+
+    try:
+        config.update(config_handler.options("main"))
+        pass
+
     LISTEN_ADDY = "0.0.0.0"
     LISTEN_PORT = "6077"
     CURRENT_VERSION = "0.5.0"
-    DEVICE_UUID = "12345678"
-    CONCURRENT_LISTENERS = 10
-    TUNER_COUNT = 3
+    DEVICE_UUID = config["uuid"]
+    CONCURRENT_LISTENERS = int(config["concurrent_listeners"])
+    TUNER_COUNT = int(config["tuner_count"])
 
-    DEBUG_MODE = os.getenv('debug', False)
-    CONFIG_LOCAST_USERNAME = os.getenv('username', '')
-    CONFIG_LOCAST_PASSWORD = os.getenv('password', '')
-    HOST_PORT = os.getenv("external_port", '6077')
-    HOST_ADDY = os.getenv("external_addy", '0.0.0.0')
-    BYTES_PER_READ = 1152000
+    if (TUNER_COUNT >= 4) or (TUNER_COUNT < 1):
+        print("Tuner count set outside of 1-4 range.  Setting to default")
+        TUNER_COUNT = 3
 
-    for argument in sys.argv:
-        if argument.startswith('-u:'):
-            CONFIG_LOCAST_USERNAME = argument[3:]
-        elif argument.startswith('-p:'):
-            CONFIG_LOCAST_PASSWORD = argument[3:]
-        elif argument.startswith('--debug'):
-            DEBUG_MODE = True
-        elif argument.startswith('--port:'):
-            HOST_PORT = argument[7:]
-        elif argument.startswith('--tuners:'):
-            tmp_tuners = argument[9:]
-            if (int(tmp_tuners) >= 4) or (int(tmp_tuners) < 1):
-                print("Tuner count set outside of 1-4 range.  Setting to default")
-                TUNER_COUNT = 3
-            else:
-                TUNER_COUNT = int(tmp_tuners)
-        elif argument.startswith('--addy:'):
-            HOST_ADDY = argument[7:]
+    LOCAST_USERNAME = config["locast_username"]
+    LOCAST_PASSWORD = config["locast_password"]
+    HOST_PORT = config["plex_accessible_port"]
+    HOST_ADDY = config["plex_accessible_ip"]
+    BYTES_PER_READ = int(config["bytes_per_read"])
+    OVERRIDE_LATITUDE = config["override_latitude"]
+    OVERRIDE_LONGITUDE = config["override_longitude"]
+    REPORTING_MODEL = config["reporting_model"]
+    REPORTING_FIRMWARE_NAME = config["reporting_firmware_name"]
+    REPORTING_FIRMWARE_VER = config["reporting_firmware_ver"]
 
 
     print("Locast2Plex v" + CURRENT_VERSION)
-    if DEBUG_MODE:
-        print("DEBUG MODE ACTIVE")
 
     print("Tuner count set to " + str(TUNER_COUNT))
 
     # generate UUID here for when we are not using docker
-    if not os.path.exists(os.path.curdir + '/service_uuid'):
+    if DEVICE_UUID is '':
         print("No UUID found.  Generating one now...")
         # from https://pynative.com/python-generate-random-string/
         # create a string that wouldn't be a real device uuid for 
         DEVICE_UUID = ''.join(random.choice("hijklmnopqrstuvwxyz") for i in range(8))
-        with open("service_uuid", 'w') as uuid_file:
-            uuid_file.write(DEVICE_UUID)
+        config_handler.set('main', 'uuid', DEVICE_UUID)
+        with open("config.ini", 'w') as config_file:
+            config_handler.write(config_file)
 
-    else:
-        print("UUID found.")
-        with open("service_uuid", 'r') as uuid_file:
-            DEVICE_UUID = uuid_file.read().replace('\n', '')
 
     print("UUID set to: " + DEVICE_UUID + "...")
 
 
     # check environment vars
-    if (CONFIG_LOCAST_USERNAME == ''):
+    if (LOCAST_USERNAME == ''):
         print("Usernanme not specified.  Exiting...")
         exit()
 
-    if (CONFIG_LOCAST_PASSWORD == ''):
+    if (LOCAST_PASSWORD == ''):
         print("Password not specified.  Exiting...")
         exit()
-
-    # make sure we don't just let any value be set for this...
-    if (DEBUG_MODE != False):
-        DEBUG_MODE = True
 
 
 
     ffmpeg_proc = None
-    
+
     mock_location = None
-    #mock_location = {
-    #    "latitude": "47.6062",
-    #    "longitude": "-122.3321"
-    #}
-#
+    
+    if (not OVERRIDE_LATITUDE is None) and (not OVERRIDE_LONGITUDE is None):
+        mock_location = {
+            "latitude": OVERRIDE_LATITUDE,
+            "longitude": OVERRIDE_LONGITUDE
+        }
+
     locast = LocastService.LocastService("./", mock_location)
     station_list = None
 
     
-    if (not locast.login(CONFIG_LOCAST_USERNAME, CONFIG_LOCAST_PASSWORD)) or (not locast.validate_user()):
+    if (not locast.login(LOCAST_USERNAME, LOCAST_PASSWORD)) or (not locast.validate_user()):
         print("Exiting...")
         clean_exit()
     else:
         station_list = locast.get_stations()
 
         try:
-            print("Starting device server on " + LISTEN_ADDY + ":" + LISTEN_PORT)
+            print("Starting device server on " + config['docker_accessible_ip'] + ":" + config['docker_accessible_port'])
             serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             serverSocket.bind((LISTEN_ADDY, int(LISTEN_PORT)))
@@ -360,7 +377,10 @@ if __name__ == '__main__':
                 "listen": (LISTEN_ADDY, LISTEN_PORT),
                 "uuid": DEVICE_UUID,
                 "tuner_count": TUNER_COUNT,
-                "bytes_per_read": BYTES_PER_READ
+                "bytes_per_read": BYTES_PER_READ,
+                "reporting_model": REPORTING_MODEL,
+                "reporting_firmware_name": REPORTING_FIRMWARE_NAME,
+                "reporting_firmware_ver": REPORTING_FIRMWARE_VER
             }
 
             for i in range(CONCURRENT_LISTENERS):

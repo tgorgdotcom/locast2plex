@@ -23,12 +23,12 @@ templates = {
         <deviceType>urn:schemas-upnp-org:device:MediaServer:1</deviceType>
         <friendlyName>Locast2Plex</friendlyName>
         <manufacturer>Silicondust</manufacturer>
-        <modelName>HDHR3-US</modelName>
-        <modelNumber>HDHR3-US</modelNumber>
+        <modelName>{0}</modelName>
+        <modelNumber>{0}</modelNumber>
         <serialNumber/>
-        <UDN>uuid:{}</UDN>
+        <UDN>uuid:{1}</UDN>
     </device>
-    <URLBase>http://{}</URLBase>
+    <URLBase>http://{2}</URLBase>
 </root>""",
 
 
@@ -47,14 +47,14 @@ templates = {
     'jsonDiscover': """{{
     "FriendlyName": "Locast2Plex",
     "Manufacturer": "Silicondust",
-    "ModelNumber": "HDHR3-US",
-    "FirmwareName": "hdhomerun3_atsc",
+    "ModelNumber": "{0}",
+    "FirmwareName": "{1}",
     "TunerCount": {2},
-    "FirmwareVersion": "20150826",
-    "DeviceID": "{0}",
+    "FirmwareVersion": "{3}",
+    "DeviceID": "{4}",
     "DeviceAuth": "locast2plex",
-    "BaseURL": "http://{1}",
-    "LineupURL": "http://{1}/lineup.json"
+    "BaseURL": "http://{5}",
+    "LineupURL": "http://{5}/lineup.json"
 }}""",
 
 

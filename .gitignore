@@ -4,6 +4,8 @@ ffprobe.exe
 locastChannels.m3u8
 redebug.bat
 telly.exe
+config_all.ini
+config.ini
 nbstreamreader.pyc
 secret_notes.txt
 SECRETS.txt

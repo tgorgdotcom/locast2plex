@@ -4,9 +4,5 @@ locast2plex:
       - "${external_port}:6077"
       - "1900:1900/udp"
     restart: unless-stopped
-    environment:
-      - username
-      - password
-      - external_addy
-      - external_port
-      - debug
+    volumes:
+      - ./config.ini:/app/config.ini
