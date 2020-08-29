@@ -297,7 +297,7 @@ if __name__ == '__main__':
 
     LISTEN_ADDY = "0.0.0.0"
     LISTEN_PORT = "6077"
-    CURRENT_VERSION = "0.5.0"
+    CURRENT_VERSION = "0.5.1"
     DEVICE_UUID = config["uuid"]
     CONCURRENT_LISTENERS = int(config["concurrent_listeners"])
     TUNER_COUNT = int(config["tuner_count"])
