@@ -273,8 +273,7 @@ if __name__ == '__main__':
     config = {
         'locast_username': None,
         'locast_password': None,
-        'override_latitude': None,
-        'override_longitude': None,
+        'override_zipcode': None,
         'bytes_per_read': '1152000',
         'plex_accessible_ip': '0.0.0.0',
         'plex_accessible_port': '6077',
@@ -311,8 +310,7 @@ if __name__ == '__main__':
     HOST_PORT = config["plex_accessible_port"]
     HOST_ADDY = config["plex_accessible_ip"]
     BYTES_PER_READ = int(config["bytes_per_read"])
-    OVERRIDE_LATITUDE = config["override_latitude"]
-    OVERRIDE_LONGITUDE = config["override_longitude"]
+    OVERRIDE_ZIPCODE = config["override_zipcode"]
     REPORTING_MODEL = config["reporting_model"]
     REPORTING_FIRMWARE_NAME = config["reporting_firmware_name"]
     REPORTING_FIRMWARE_VER = config["reporting_firmware_ver"]
@@ -338,15 +336,7 @@ if __name__ == '__main__':
 
     ffmpeg_proc = None
 
-    mock_location = None
-    
-    if (not OVERRIDE_LATITUDE is None) and (not OVERRIDE_LONGITUDE is None):
-        mock_location = {
-            "latitude": OVERRIDE_LATITUDE,
-            "longitude": OVERRIDE_LONGITUDE
-        }
-
-    locast = LocastService.LocastService("./", mock_location)
+    locast = LocastService.LocastService("./", OVERRIDE_ZIPCODE)
     station_list = None
 
     
