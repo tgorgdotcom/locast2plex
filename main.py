@@ -297,7 +297,7 @@ if __name__ == '__main__':
 
     LISTEN_ADDY = "0.0.0.0"
     LISTEN_PORT = "6077"
-    CURRENT_VERSION = "0.5.1"
+    CURRENT_VERSION = "0.5.2"
     DEVICE_UUID = config["uuid"]
     CONCURRENT_LISTENERS = int(config["concurrent_listeners"])
     TUNER_COUNT = int(config["tuner_count"])
@@ -380,9 +380,9 @@ if __name__ == '__main__':
             print("Starting SSDP server...")
             ssdpServer = Process(target=ssdpServerProcess, args=(HOST_ADDY, HOST_PORT, DEVICE_UUID))
             ssdpServer.daemon = True
-            ssdpServer.start()
 
-            print("locast2plex is running and active!")
+            print("Locast2Plex is active and listening...")
+            ssdpServer.start()
 
             # wait forever
             while True:
