@@ -5,4 +5,4 @@ locast2plex:
       - "1900:1900/udp"
     restart: unless-stopped
     volumes:
-      - ./config.ini:/app/config.ini
+      - ./config.ini:/app/config/config.ini
