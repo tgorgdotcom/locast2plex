@@ -724,7 +724,7 @@ class Playlist(BasePathMixin):
             if not group_id:
                 continue
 
-            self.media += filter(lambda m: m.group_id == group_id, media)
+            self.media += [m for m in media if m.group_id == group_id]
 
     def __str__(self):
         media_types = []

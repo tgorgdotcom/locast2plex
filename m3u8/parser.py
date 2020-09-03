@@ -3,7 +3,7 @@
 # Use of this source code is governed by a MIT License
 # license that can be found in the LICENSE file.
 
-import iso8601
+from . import iso8601
 import datetime
 import itertools
 import re
@@ -459,7 +459,7 @@ def string_to_lines(string):
 
 
 def remove_quotes_parser(*attrs):
-    return dict(zip(attrs, itertools.repeat(remove_quotes)))
+    return dict(list(zip(attrs, itertools.repeat(remove_quotes))))
 
 
 def remove_quotes(string):
