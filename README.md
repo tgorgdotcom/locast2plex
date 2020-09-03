@@ -52,8 +52,8 @@ As of 0.3, are now two ways to use locast2plex -- either via a Docker container,
 2. *NEW FOR 0.5.x* We now use a config.ini file to store our configuration options.  Create a new file with the following content in a handy location on your computer, making sure you modify the appropriate fields to match your configuration:
     ```
     [main]
-    username=<locast username>
-    password=<locast password>
+    locast_username=<locast username>
+    locast_password=<locast password>
     plex_accessible_ip=<ip found in step 1>
     ```
     
