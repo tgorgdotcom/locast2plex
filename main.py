@@ -302,7 +302,7 @@ if __name__ == '__main__':
     CONCURRENT_LISTENERS = int(config["concurrent_listeners"])
     TUNER_COUNT = int(config["tuner_count"])
 
-    if (TUNER_COUNT >= 4) or (TUNER_COUNT < 1):
+    if (TUNER_COUNT > 4) or (TUNER_COUNT < 1):
         print("Tuner count set outside of 1-4 range.  Setting to default")
         TUNER_COUNT = 3
 
