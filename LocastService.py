@@ -1,6 +1,11 @@
-import json, urllib.request, urllib.error, urllib.parse, time, os, sys, string
-import m3u8
+import json
+import sys
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
 
+import m3u8
 
 
 class LocastService:
@@ -34,7 +39,7 @@ class LocastService:
             return False
 
         # login
-        print(("Logging into Locast using username " + username + "..."))
+        print("Logging into Locast using username " + username + "...")
 
         # https://api.locastnet.org/api/user/login
         # POST
@@ -49,14 +54,14 @@ class LocastService:
             loginRes = json.load(loginOpn)
             loginOpn.close()
         except urllib.error.URLError as urlError:
-            print(("Error during login: " + str(urlError.reason)))
+            print("Error during login: " + str(urlError.reason))
             return False
         except urllib.error.HTTPError as httpError:
-            print(("Error during login: " + str(httpError.reason)))
+            print("Error during login: " + str(httpError.reason))
             return False
         except:
             loginErr = sys.exc_info()[0]
-            print(("Error during login: " + loginErr.message))
+            print("Error during login: " + loginErr.message)
             return False
 
         self.current_token = loginRes["token"]
@@ -78,26 +83,26 @@ class LocastService:
             userRes = json.load(userOpn)
             userOpn.close()
         except urllib.error.URLError as urlError:
-            print(("Error during user info request: " + str(urlError.reason)))
+            print("Error during user info request: " + str(urlError.reason))
             return False
         except urllib.error.HTTPError as httpError:
-            print(("Error during user info request: " + str(httpError.reason)))
+            print("Error during user info request: " + str(httpError.reason))
             return False
         except:
             userInfoErr = sys.exc_info()[0]
-            print(("Error during user info request: " + userInfoErr.message))
+            print("Error during user info request: " + userInfoErr.message)
             return False
 
 
         print("User Info obtained.")
-        print(("User didDonate: " + str(userRes['didDonate'])))
+        print("User didDonate: " + str(userRes['didDonate']))
 
         # Check if donated
         if not userRes['didDonate']:
             print("Error!  User must donate for this to work.")
             return False
 
-        print(("User donationExpire: " + str(userRes['donationExpire'] / 1000)))
+        print("User donationExpire: " + str(userRes['donationExpire'] / 1000))
 
         # Check if donation has expired
         if ((userRes['donationExpire'] / 1000) < int(time.time())):
@@ -116,16 +121,16 @@ class LocastService:
                 geoRes = json.load(geoOpn)
                 geoOpn.close()
             except urllib.error.URLError as urlError:
-                print(("Error during geo IP acquisition: " + str(urlError.reason)))
+                print("Error during geo IP acquisition: " + str(urlError.reason))
                 return False
             except urllib.error.HTTPError as httpError:
-                print(("Error during geo IP acquisition: " + str(httpError.reason)))
+                print("Error during geo IP acquisition: " + str(httpError.reason))
                 return False
             except:
                 geoIpErr = sys.exc_info()[0]
-                print(("Error during geo IP acquisition: " + geoIpErr.message))
+                print("Error during geo IP acquisition: " + geoIpErr.message)
                 return False
-            print(("User location obtained as " + geoRes['latitude'] + '/' + geoRes['longitude']))
+            print("User location obtained as " + geoRes['latitude'] + '/' + geoRes['longitude'])
             self.current_location = geoRes
 
 
@@ -145,17 +150,17 @@ class LocastService:
                 dmaRes = json.load(dmaOpn)
                 dmaOpn.close()
             except urllib.error.URLError as urlError:
-                print(("Error when getting the users's DMA: " + str(urlError.reason)))
+                print("Error when getting the users's DMA: " + str(urlError.reason))
                 return False
             except urllib.error.HTTPError as httpError:
-                print(("Error when getting the users's DMA: " + str(httpError.reason)))
+                print("Error when getting the users's DMA: " + str(httpError.reason))
                 return False
             except:
                 dmaErr = sys.exc_info()[0]
-                print(("Error when getting the users's DMA: " + dmaErr.message))
+                print("Error when getting the users's DMA: " + dmaErr.message)
                 return False
 
-            print(("DMA found as " + dmaRes['DMA'] + ": " + dmaRes['name']))
+            print("DMA found as " + dmaRes['DMA'] + ": " + dmaRes['name'])
 
             if (dmaRes['active'] == False):
                 print("DMA not available in Locast yet.  Exiting...")
@@ -189,14 +194,14 @@ class LocastService:
             stationsOpn.close()
 
         except urllib.error.URLError as urlError:
-            print(("Error when getting the list of stations: " + str(urlError.reason)))
+            print("Error when getting the list of stations: " + str(urlError.reason))
             return False
         except urllib.error.HTTPError as httpError:
-            print(("Error when getting the list of stations: " + str(httpError.reason)))
+            print("Error when getting the list of stations: " + str(httpError.reason))
             return False
         except:
             stationErr = sys.exc_info()[0]
-            print(("Error when getting the list of stations: " + stationErr.message))
+            print("Error when getting the list of stations: " + stationErr.message)
             return False
 
         # get the actual channel number by comparing the callsign with
@@ -408,7 +413,7 @@ class LocastService:
 
 
     def get_station_stream_uri(self, station_id):
-        print(("Getting station info for " + station_id + "..."))
+        print("Getting station info for " + station_id + "...")
 
         try:
             videoUrlReq = urllib.request.Request('https://api.locastnet.org/api/watch/station/' + 
@@ -421,17 +426,17 @@ class LocastService:
             videoUrlRes = json.load(videoUrlOpn)
             videoUrlOpn.close()
         except urllib.error.URLError as urlError:
-            print(("Error when getting the video URL: " + str(urlError.reason)))
+            print("Error when getting the video URL: " + str(urlError.reason))
             return False
         except urllib.error.HTTPError as httpError:
-            print(("Error when getting the video URL: " + str(httpError.reason)))
+            print("Error when getting the video URL: " + str(httpError.reason))
             return False
         except:
             videoUrlReqErr = sys.exc_info()[0]
-            print(("Error when getting the video URL: " + videoUrlReqErr.message))
+            print("Error when getting the video URL: " + videoUrlReqErr.message)
             return False
 
-        print(("Determining best video stream for " + station_id + "..."))
+        print("Determining best video stream for " + station_id + "...")
 
         bestStream = None
         
@@ -440,7 +445,7 @@ class LocastService:
 
         
 
-        print(("Found " + str(len(videoUrlM3u.playlists)) + " Playlists"))
+        print("Found " + str(len(videoUrlM3u.playlists)) + " Playlists")
         
         if len(videoUrlM3u.playlists) > 0:
             for videoStream in videoUrlM3u.playlists:
@@ -458,9 +463,9 @@ class LocastService:
         
 
             if bestStream != None:
-                print((station_id + " will use " + 
+                print(station_id + " will use " +
                         str(bestStream.stream_info.resolution[0]) + "x" + str(bestStream.stream_info.resolution[1]) + 
-                        " resolution at " + str(bestStream.stream_info.bandwidth) + "bps"))
+                        " resolution at " + str(bestStream.stream_info.bandwidth) + "bps")
 
                 return bestStream.absolute_uri
 

@@ -16,10 +16,7 @@ import re
 __all__ = ["parse_date", "ParseError", "UTC",
            "FixedOffset"]
 
-if sys.version_info >= (3, 0, 0):
-    _basestring = str
-else:
-    _basestring = str
+_basestring = str
 
 
 # Adapted from http://delete.me.uk/2005/03/iso8601.html

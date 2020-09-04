@@ -1,13 +1,18 @@
-import subprocess, os, sys, random, threading, socket, time, errno, socketserver, configparser
-import SSDPServer
-import LocastService
-from templates import templates
-from functools import partial
+import configparser
+import errno
+import os
+import random
+import socket
+import subprocess
+import sys
+import threading
+import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from multiprocessing import Process
 
-
-
+import LocastService
+import SSDPServer
+from templates import templates
 
 
 def clean_exit():
@@ -143,7 +148,7 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
             self.end_headers()
 
         else:
-            print(("Unknown request to " + self.path))
+            print("Unknown request to " + self.path)
             self.send_response(501)
             self.send_header('Content-type','text/html')
             self.end_headers()
@@ -194,14 +199,14 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
                 self.send_header('Content-type','text/html')
                 self.end_headers()
             else:
-                print(("Unknown scan command " + queryData['scan']))
+                print("Unknown scan command " + queryData['scan'])
                 self.send_response(400)
                 self.send_header('Content-type','text/html')
                 self.end_headers()
                 self.wfile.write(self.templates['htmlError'].format(queryData['scan'] + ' is not a valid scan command'))
 
         else:
-            print(("Unknown request to " + contentPath))
+            print("Unknown request to " + contentPath)
 
         return
 
@@ -236,7 +241,7 @@ class PlexHttpServer(threading.Thread):
         self.start()
 
     def run(self):
-        httpd = HTTPServer((self.address, int(self.port)), PlexHttpHandler, False)
+        httpd = HTTPServer((self.address, int(self.port)), PlexHttpHandler)
         httpd.socket = self.socket
         httpd.server_bind = self.server_close = lambda self: None
 
@@ -318,9 +323,9 @@ if __name__ == '__main__':
     REPORTING_FIRMWARE_VER = config["reporting_firmware_ver"]
 
 
-    print(("Locast2Plex v" + CURRENT_VERSION))
+    print("Locast2Plex v" + CURRENT_VERSION)
 
-    print(("Tuner count set to " + str(TUNER_COUNT)))
+    print("Tuner count set to " + str(TUNER_COUNT))
 
     # generate UUID here for when we are not using docker
     if DEVICE_UUID is None:
@@ -333,7 +338,7 @@ if __name__ == '__main__':
             config_handler.write(config_file)
 
 
-    print(("UUID set to: " + DEVICE_UUID + "..."))
+    print("UUID set to: " + DEVICE_UUID + "...")
 
 
     ffmpeg_proc = None
@@ -357,7 +362,7 @@ if __name__ == '__main__':
         station_list = locast.get_stations()
 
         try:
-            print(("Starting device server on " + config['plex_accessible_ip'] + ":" + config['plex_accessible_port']))
+            print("Starting device server on " + config['plex_accessible_ip'] + ":" + config['plex_accessible_port'])
             serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             serverSocket.bind((LISTEN_ADDY, int(LISTEN_PORT)))
