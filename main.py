@@ -287,7 +287,10 @@ if __name__ == '__main__':
     }
 
     config_handler = ConfigParser.RawConfigParser()
-    config_handler.read('config/config.ini')
+    if os.path.exists('config/config.ini'):
+        config_handler.read('config/config.ini')
+    else:
+        config_handler.read('config.ini')
 
     try:
         for option_name in config_handler.options("main"):
