@@ -30,8 +30,9 @@ class LocastService:
     base_data_folder = None
 
 
-    def __init__(self, base_folder, zipcode):
+    def __init__(self, base_folder, mock_location, zipcode):
         self.base_data_folder = base_folder
+        self.mock_location = mock_location
         self.zipcode = zipcode
 
 
@@ -97,8 +98,9 @@ class LocastService:
         # Check for user's location
         print("Getting user location...")
 
-        # Find the users location zipcode if specified, otherwise use IP. Attempts
-        # to mirror the geolocation found at locast.org\dma. Also allows for a 
+        # Find the users location via lat\long or zipcode if specified,(lat\lon
+        # taking precedence if both are provided) otherwise use IP. Attempts to 
+        # mirror the geolocation found at locast.org\dma. Also allows for a 
         # check that Locast reports the area as active. 
         if self.find_location():
             print("Got location as {} - DMA {} - Lat\Lon {}\{}".format(self.current_city, 
@@ -117,9 +119,10 @@ class LocastService:
 
     def find_location(self):
         '''
-        Mirror the geolocation options found at locast.org/dma since we can't rely on browser
-        geolocation. If the user provides an override_zipcode, resolve location based on zip.
-        Otherwise check by external ip, (using ipinfo.io, as the site does).
+        Mirror the geolocation options found at locast.org/dma since we can't 
+        rely on browser geolocation. If the user provides override coords, or 
+        override_zipcode, resolve location based on that data. Otherwise check 
+        by external ip, (using ipinfo.io, as the site does).
 
         Calls to Locast return JSON in the following format:
         {
@@ -133,9 +136,12 @@ class LocastService:
             u'small_url': str
         } 
         '''
-        # Check if the user provided an override zipcode, and that it's valid. 
         zip_format = re.compile(r'^[0-9]{5}$')
-        if self.zipcode and zip_format.match(self.zipcode):
+        # Check if the user provided override coords. 
+        if self.mock_location:
+            return self.get_coord_location()
+        # Check if the user provided an override zipcode, and that it's valid.
+        elif self.zipcode and zip_format.match(self.zipcode):
             return self.get_zip_location()
         else:
             # If no override zip, or not a valid ZIP, fallback to IP location. 
@@ -145,7 +151,7 @@ class LocastService:
     def get_zip_location(self):
         print("Getting location via provided zipcode {}".format(self.zipcode))
         # Get geolocation via Locast, based on user provided zipcode.
-        req = urllib2.Request('https://api.locastnet.org/api/watch/dma/zip/' + self.zipcode)
+        req = urllib2.Request('https://api.locastnet.org/api/watch/dma/zip/{}'.format(self.zipcode))
         resp = urllib2.urlopen(req)
         geoRes = json.load(resp)
         resp.close()
@@ -176,6 +182,24 @@ class LocastService:
         self.active_dma = geoRes['active']
         self.current_city = str(geoRes['name'])
         return True
+    
+    @handle_url_except
+    def get_coord_location(self):
+        print("Getting location via provided lat\lon coordinates.")
+        # Get geolocation via Locast, using lat\lon coordinates.
+        lat = self.mock_location['latitude']
+        lon = self.mock_location['longitude']
+        req = urllib2.Request('https://api.locastnet.org/api/watch/dma/{}/{}'.format(lat, lon))
+        req.add_header('Content-Type', 'application/json')
+        resp = urllib2.urlopen(req)
+        geoRes = json.load(resp)
+        resp.close()
+        self.current_location = {'latitude': str(geoRes['latitude']), 'longitude': str(geoRes['longitude'])}
+        self.current_dma = str(geoRes['DMA'])
+        self.active_dma = geoRes['active']
+        self.current_city = str(geoRes['name'])
+        return True
+
 
     def get_stations(self):
 
