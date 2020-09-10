@@ -16,8 +16,6 @@ import re
 __all__ = ["parse_date", "ParseError", "UTC",
            "FixedOffset"]
 
-_basestring = str
-
 
 # Adapted from http://delete.me.uk/2005/03/iso8601.html
 ISO8601_REGEX = re.compile(
@@ -185,7 +183,7 @@ def parse_date(datestring, default_timezone=UTC):
              constructing the datetime instance.
 
     """
-    if not isinstance(datestring, _basestring):
+    if not isinstance(datestring, str):
         raise ParseError("Expecting a string %r" % datestring)
     m = ISO8601_REGEX.match(datestring)
     if not m:

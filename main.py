@@ -67,9 +67,9 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
             self.send_header('Content-type','application/json')
             self.end_headers()
             if self.station_scan:
-                self.wfile.write(self.templates['jsonLineupStatus'])
+                self.wfile.write(self.templates['jsonLineupStatus'].encode('utf-8'))
             else:
-                self.wfile.write(self.templates['jsonLineupComplete'])
+                self.wfile.write(self.templates['jsonLineupComplete'].encode('utf-8'))
             
         elif self.path == '/lineup.json': # TODO
             self.send_response(200)
@@ -241,7 +241,7 @@ class PlexHttpServer(threading.Thread):
         self.start()
 
     def run(self):
-        httpd = HTTPServer((self.address, int(self.port)), PlexHttpHandler)
+        httpd = HTTPServer((self.address, int(self.port)), PlexHttpHandler, False)
         httpd.socket = self.socket
         httpd.server_bind = self.server_close = lambda self: None
 
