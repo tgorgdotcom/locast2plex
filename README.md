@@ -45,7 +45,14 @@ As of 0.3, are now two ways to use locast2plex -- either via a Docker container,
 
 
 ## Installation
-1. Take note of the Plex-accessible IP address of the server install you are using to create the container.  If you are running locast2plex on the same server as Plex, you may need use the loopback address (127.0.0.1), or perhaps the Docker container IP address (if both are separate Docker containers), instead.   Note that the ports used are:
+1. Take note of the IP address of the server or container that will 'host' the locast2plex service.  This could be a few things based on your configuration:
+    - The IP of the server running locast2plex (if Plex is running on a completely separate server),
+    - The loopback address (127.0.0.1), if you are running locast2plex on the same server as Plex, and Plex **is not** running in a Docker container, or
+    - If running both Plex and locast2plex in Docker containers on the same server, the IP configured in Docker to access the locast2plex container.  *How this would be set up is outside of the scope of this README, unfortunately*.
+
+   There might be additional edge cases here for particular server setups.  Check the [Troubleshooting Wiki Page](https://github.com/tgorgdotcom/locast2plex/wiki/Troubleshooting-and-Common-Issues) on GitHub for more help with your particular setup.
+   
+   Note that the ports used are:
     - `6077` (tcp) for the hdhomerun device emulation service (and can be changed)
     - `1900` (udp) for SSDP discovery (which cannot be changed -- see troubleshooting for workarounds).
 
@@ -132,17 +139,17 @@ For `docker-compose` users, delete the following line from `docker-compose.yml`:
     
   `- "1900:1900/udp"`
   
-For now, there is no option for straight Python users to disable port 1900.  Let me know in GitHub if this is an important option to implement.
+For now, there is no option for straight Python users to disable port 1900.  Let me know in GitHub if this is an important option to implement
 
-### Submitting an issue
+> ### Additional Troubleshooting notes can be found on the  [Troubleshooting Wiki Page](https://github.com/tgorgdotcom/locast2plex/wiki/Troubleshooting-and-Common-Issues)
 
-When submitting an issue, make sure to take note of the docker or command line output, and include OS details and what method of install you have chosen (Docker, docker-compose, or via terminal).  **Note that logs reveal username and approximate location information (in latitude/longitude as well as Locast's Nielsen market id), so be sure to look through what you post and clear out any data you want hidden before posting.**
+## Submitting an issue
+
+When submitting an issue, make sure to take note of the docker or command line output, and include OS details and what method of install you have chosen (Docker, docker-compose, or via terminal).  **Note that logs reveal username and approximate location information (in latitude/longitude as well as Locast's Nielsen market id), so be sure to look through what you post and clear out any data you want hidden before posting.** 
 
 
 ## Credits
 #### A big THANK YOU to all who have co-developed locast2plex, and/or are answering issues in GitHub (sorry if I missed anyone!):
-
-CTJohnK, diana1055, FozzieBear, jcastilloalonso, steventwheeler
-
-
-
+```
+CTJohnK, diana1055, FozzieBear, jcastilloalonso, steventwheeler, precision, deathbybandaid, mneumark, ratherDashing, tharris9d, tri-ler, teconmoon, dwkane, RedGreen007
+```
