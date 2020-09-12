@@ -1,4 +1,4 @@
-> **IMPORTANT FOR USERS UPGRADING TO 0.3.x OR 0.5.x**: With the architectural changes made in these versions, a few config and set up tasks have changed.  Please re-review the installation instructions for detals
+> **IMPORTANT FOR USERS UPGRADING TO 0.3.x OR 0.5.x**: With the architectural changes made in these versions, a few config and set up tasks have changed.  Please re-review the installation instructions for details.
 
 
 # locast2plex
