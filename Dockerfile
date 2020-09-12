@@ -10,7 +10,5 @@ COPY SSDPServer.py /app/SSDPServer.py
 COPY LocastService.py /app/LocastService.py
 COPY tv_stations.json /app/tv_stations.json
 COPY m3u8/ /app/m3u8/
-RUN (cat /dev/urandom | tr -dc 'h-z' | fold -w 8 | head -n 1) > /app/service_uuid
 
-ENV username='username' password='password' external_addy='0.0.0.0' external_port='6077' debug='false'
 ENTRYPOINT ["python", "/app/main.py", "2>&1"]
