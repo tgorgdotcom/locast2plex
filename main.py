@@ -1,4 +1,4 @@
-import subprocess, os, sys, random, threading, socket, time, errno, SocketServer, ConfigParser
+import subprocess, os, re, sys, random, threading, socket, time, errno, SocketServer, ConfigParser
 import SSDPServer
 import LocastService
 from templates import templates
@@ -16,6 +16,21 @@ def clean_exit():
     os._exit(0)
 
 
+
+
+
+# from https://stackoverflow.com/a/43880536
+def is_docker():
+    path = "/proc/self/cgroup"
+    if not os.path.isfile(path): return False
+    with open(path) as f:
+        for line in f:
+            if re.match("\d+:[\w=]+:/docker(-[ce]e)?/\w+", line):
+                return True
+        return False
+
+
+
         
 
 # with help from https://www.acmesystems.it/python_http
@@ -23,8 +38,8 @@ def clean_exit():
 class PlexHttpHandler(BaseHTTPRequestHandler):
 
     # using class variables since this should only be set once
-    address = ""
-    port = ""
+    host_address = ""
+    host_port = ""
     uuid = ""
     reporting_model = ""
     reporting_firmware_name = ""
@@ -37,7 +52,7 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
     bytes_per_read = 1024000
 
     def do_GET(self): 
-        base_url = self.address + ':' + self.port
+        base_url = self.host_address + ':' + self.host_port
 
         # paths and logic mostly pulled from telly:routes.go: https://github.com/tellytv/telly
         if (self.path == '/') or (self.path == '/device.xml'):
@@ -153,6 +168,8 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
 
 
 
+
+
     def do_POST(self):
 
         contentPath = self.path
@@ -209,7 +226,6 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
 
 
 
-
 # mostly from https://github.com/ZeWaren/python-upnp-ssdp-example
 # and https://stackoverflow.com/questions/46210672/python-2-7-streaming-http-server-supporting-multiple-connections-on-one-port
 class PlexHttpServer(threading.Thread):
@@ -217,8 +233,8 @@ class PlexHttpServer(threading.Thread):
     def __init__(self, serverSocket, config, templates, station_list, locast_service):
         threading.Thread.__init__(self)
 
-        PlexHttpHandler.address = config["host"][0]
-        PlexHttpHandler.port = config["host"][1]
+        PlexHttpHandler.host_address = config["host"][0]
+        PlexHttpHandler.host_port = config["host"][1]
         PlexHttpHandler.uuid = config["uuid"]
         PlexHttpHandler.tuner_count = config["tuner_count"]
         PlexHttpHandler.bytes_per_read = config["bytes_per_read"]
@@ -229,19 +245,18 @@ class PlexHttpServer(threading.Thread):
         PlexHttpHandler.reporting_firmware_name = config["reporting_firmware_name"]
         PlexHttpHandler.reporting_firmware_ver = config["reporting_firmware_ver"]
 
-        self.address = config["listen"][0]
-        self.port = config["listen"][1]
+        self.listen_address = config["listen"][0]
+        self.listen_port = config["listen"][1]
         self.socket = serverSocket
         self.daemon = True
         self.start()
 
     def run(self):
-        httpd = HTTPServer((self.address, int(self.port)), PlexHttpHandler, False)
+        httpd = HTTPServer((self.listen_address, int(self.listen_port)), PlexHttpHandler, False)
         httpd.socket = self.socket
         httpd.server_bind = self.server_close = lambda self: None
 
         httpd.serve_forever()
-
 
 
 
@@ -321,6 +336,12 @@ if __name__ == '__main__':
     REPORTING_MODEL = config["reporting_model"]
     REPORTING_FIRMWARE_NAME = config["reporting_firmware_name"]
     REPORTING_FIRMWARE_VER = config["reporting_firmware_ver"]
+
+    # docker users only configure the outside port, but for those running in command line/terminal
+    # these will be the same
+    if not is_docker():
+        LISTEN_PORT = HOST_PORT
+        LISTEN_ADDY = HOST_ADDY
 
 
     print("Locast2Plex v" + CURRENT_VERSION)

@@ -11,5 +11,5 @@ secret_notes.txt
 SECRETS.txt
 .vscode
 service_uuid
-*.pyc
 TODO.md
+*.pyc
