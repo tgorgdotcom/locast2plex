@@ -287,7 +287,10 @@ if __name__ == '__main__':
     }
 
     config_handler = ConfigParser.RawConfigParser()
-    config_handler.read('config.ini')
+    if os.path.exists('config/config.ini'):
+        config_handler.read('config/config.ini')
+    else:
+        config_handler.read('config.ini')
 
     try:
         for option_name in config_handler.options("main"):
@@ -329,9 +332,13 @@ if __name__ == '__main__':
         # create a string that wouldn't be a real device uuid for 
         DEVICE_UUID = ''.join(random.choice("hijklmnopqrstuvwxyz") for i in range(8))
         config_handler.set('main', 'uuid', DEVICE_UUID)
-        with open("config.ini", 'w') as config_file:
-            config_handler.write(config_file)
 
+        if os.path.exists('config/config.ini'):
+            with open("config/config.ini", 'w') as config_file:
+                config_handler.write(config_file)
+        else:
+            with open("config.ini", 'w') as config_file:
+                config_handler.write(config_file)
 
     print("UUID set to: " + DEVICE_UUID + "...")
 

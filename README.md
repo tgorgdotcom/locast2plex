@@ -82,11 +82,11 @@ As of 0.3, are now two ways to use locast2plex -- either via a Docker container,
         
             Run the following command:
                 
-            `docker run -v <full path to config file>:/app/config.ini -p 6077:6077 -p 1900:1900/udp tgorg/locast2plex`
+            `docker run -v <full path to config file>:/app/config/config.ini -p 6077:6077 -p 1900:1900/udp tgorg/locast2plex`
 
             If you are changing port `6077`, you will also need to modify the port number in the first `-p` argument, like so:
 
-            `docker run -v <full path to config file>:/app/config.ini -p 12345:6077 -p 1900:1900/udp tgorg/locast2plex`
+            `docker run -v <full path to config file>:/app/config/config.ini -p 12345:6077 -p 1900:1900/udp tgorg/locast2plex`
 
 
     - **Via Terminal/Command Line**: 
@@ -126,7 +126,7 @@ In the future, I'd like to implement some additional checks and tests for better
 
 SSDP is used to *try* to enable Plex autodetection of the locast2plex instance, but it's currently buggy at the moment.  If you're using Docker, you can remove the `-p 1900:1900/udp` part of the docker command like so:
 
-  `docker run -v <full path to config file:/app/config.ini -p 6077:6077 tgorg/locast2plex`
+  `docker run -v <full path to config file:/app/config/config.ini -p 6077:6077 tgorg/locast2plex`
 
 For `docker-compose` users, delete the following line from `docker-compose.yml`:
     
