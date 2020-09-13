@@ -1,4 +1,5 @@
 # coding: utf-8
+# pylama:ignore=E303
 # Copyright 2014 Globo.com Player authors. All rights reserved.
 # Use of this source code is governed by a MIT License
 # license that can be found in the LICENSE file.
@@ -275,6 +276,7 @@ def _parse_attribute_list(prefix, line, atribute_parser):
 
     return attributes
 
+
 def _parse_stream_inf(line, data, state):
     data['is_variant'] = True
     data['media_sequence'] = None
@@ -341,11 +343,13 @@ def _parse_cueout_cont(line, state):
         state['current_cue_out_duration'] = res.group(1)
         state['current_cue_out_scte35'] = res.group(2)
 
+
 def _cueout_no_duration(line):
     # this needs to be called first since line.split in all other
     # parsers will throw a ValueError if passed just this tag
     if line == protocol.ext_x_cue_out:
         return (None, None)
+
 
 def _cueout_elemental(line, state, prevline):
     param, value = line.split(':', 1)
@@ -355,6 +359,7 @@ def _cueout_elemental(line, state, prevline):
     else:
         return None
 
+
 def _cueout_envivio(line, state, prevline):
     param, value = line.split(':', 1)
     res = re.match('.*DURATION=(.*),.*,CUE="(.*)"', value)
@@ -363,6 +368,7 @@ def _cueout_envivio(line, state, prevline):
     else:
         return None
 
+
 def _cueout_simple(line):
     # this needs to be called after _cueout_elemental
     # as it would capture those cues incompletely
@@ -370,6 +376,7 @@ def _cueout_simple(line):
     res = re.match('^(\d+(?:\.\d)?\d*)$', value)
     if res:
         return (None, res.group(1))
+
 
 def _parse_cueout(line, state, prevline):
     _cueout_state = (_cueout_no_duration(line)
@@ -380,17 +387,19 @@ def _parse_cueout(line, state, prevline):
         state['current_cue_out_scte35'] = _cueout_state[0]
         state['current_cue_out_duration'] = _cueout_state[1]
 
+
 def _parse_server_control(line, data, state):
     attribute_parser = {
         "can_block_reload": str,
-        "hold_back":        lambda x: float(x),
-        "part_hold_back":   lambda x: float(x),
-        "can_skip_until":   lambda x: float(x)
+        "hold_back": lambda x: float(x),
+        "part_hold_back": lambda x: float(x),
+        "can_skip_until": lambda x: float(x)
     }
 
     data['server_control'] = _parse_attribute_list(
         protocol.ext_x_server_control, line, attribute_parser
     )
+
 
 def _parse_part_inf(line, data, state):
     attribute_parser = {
@@ -400,6 +409,7 @@ def _parse_part_inf(line, data, state):
     data['part_inf'] = _parse_attribute_list(
         protocol.ext_x_part_inf, line, attribute_parser
     )
+
 
 def _parse_rendition_report(line, data, state):
     attribute_parser = remove_quotes_parser('uri')
@@ -411,6 +421,7 @@ def _parse_rendition_report(line, data, state):
     )
 
     data['rendition_reports'].append(rendition_report)
+
 
 def _parse_part(line, data, state):
     attribute_parser = remove_quotes_parser('uri')
@@ -434,6 +445,7 @@ def _parse_part(line, data, state):
 
     segment['parts'].append(part)
 
+
 def _parse_skip(line, data, state):
     attribute_parser = {
         "skipped_segments": int
@@ -441,10 +453,12 @@ def _parse_skip(line, data, state):
 
     data['skip'] = _parse_attribute_list(protocol.ext_x_skip, line, attribute_parser)
 
+
 def _parse_session_data(line, data, state):
     quoted = remove_quotes_parser('data_id', 'value', 'uri', 'language')
     session_data = _parse_attribute_list(protocol.ext_x_session_data, line, quoted)
     data['session_data'].append(session_data)
+
 
 def _parse_session_key(line, data, state):
     params = ATTRIBUTELISTPATTERN.split(line.replace(protocol.ext_x_session_key + ':', ''))[1::2]
@@ -453,6 +467,7 @@ def _parse_session_key(line, data, state):
         name, value = param.split('=', 1)
         key[normalize_attribute(name)] = remove_quotes(value)
     data['session_keys'].append(key)
+
 
 def string_to_lines(string):
     return string.strip().splitlines()
@@ -484,4 +499,3 @@ def normalize_attribute(attribute):
 
 def is_url(uri):
     return uri.startswith(('https://', 'http://'))
-

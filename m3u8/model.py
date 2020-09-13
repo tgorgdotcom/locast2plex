@@ -1,4 +1,5 @@
 # coding: utf-8
+# pylama:ignore=E303
 # Copyright 2014 Globo.com Player authors. All rights reserved.
 # Use of this source code is governed by a MIT License
 # license that can be found in the LICENSE file.
@@ -157,11 +158,11 @@ class M3U8(object):
 
 
     def _initialize_attributes(self):
-        self.keys = [ Key(base_uri=self.base_uri, **params) if params else None
-                      for params in self.data.get('keys', []) ]
-        self.segments = SegmentList([ Segment(base_uri=self.base_uri, keyobject=find_key(segment.get('key', {}), self.keys), **segment)
-                                      for segment in self.data.get('segments', []) ])
-        #self.keys = get_uniques([ segment.key for segment in self.segments ])
+        self.keys = [Key(base_uri=self.base_uri, **params) if params else None
+                     for params in self.data.get('keys', [])]
+        self.segments = SegmentList([Segment(base_uri=self.base_uri, keyobject=find_key(segment.get('key', {}), self.keys), **segment)
+                                     for segment in self.data.get('segments', [])])
+        # self.keys = get_uniques([ segment.key for segment in self.segments ])
         for attr, param in self.simple_attributes:
             setattr(self, attr, self.data.get(param))
 
@@ -172,18 +173,18 @@ class M3U8(object):
                 self.files.append(key.uri)
         self.files.extend(self.segments.uri)
 
-        self.media = MediaList([ Media(base_uri=self.base_uri, **media)
-                                 for media in self.data.get('media', []) ])
+        self.media = MediaList([Media(base_uri=self.base_uri, **media)
+                                for media in self.data.get('media', [])])
 
-        self.playlists = PlaylistList([ Playlist(base_uri=self.base_uri, media=self.media, **playlist)
-                                        for playlist in self.data.get('playlists', []) ])
+        self.playlists = PlaylistList([Playlist(base_uri=self.base_uri, media=self.media, **playlist)
+                                       for playlist in self.data.get('playlists', [])])
 
         self.iframe_playlists = PlaylistList()
         for ifr_pl in self.data.get('iframe_playlists', []):
             self.iframe_playlists.append(IFramePlaylist(base_uri=self.base_uri,
                                          uri=ifr_pl['uri'],
                                          iframe_stream_info=ifr_pl['iframe_stream_info'])
-                                        )
+                                         )
         self.segment_map = self.data.get('segment_map')
 
         start = self.data.get('start', None)
@@ -198,15 +199,15 @@ class M3U8(object):
         skip = self.data.get('skip', None)
         self.skip = skip and Skip(**skip)
 
-        self.rendition_reports = RenditionReportList([ RenditionReport(base_uri=self.base_uri, **rendition_report)
-                                                  for rendition_report in self.data.get('rendition_reports', []) ])
+        self.rendition_reports = RenditionReportList([RenditionReport(base_uri=self.base_uri, **rendition_report)
+                                                      for rendition_report in self.data.get('rendition_reports', [])])
 
-        self.session_data = SessionDataList([ SessionData(**session_data)
-                             for session_data in self.data.get('session_data', [])
-                             if 'data_id' in session_data ])
+        self.session_data = SessionDataList([SessionData(**session_data)
+                                             for session_data in self.data.get('session_data', [])
+                                             if 'data_id' in session_data])
 
-        self.session_keys = [ SessionKey(base_uri=self.base_uri, **params) if params else None
-                      for params in self.data.get('session_keys', []) ]
+        self.session_keys = [SessionKey(base_uri=self.base_uri, **params) if params else None
+                             for params in self.data.get('session_keys', [])]
 
     def __unicode__(self):
         return self.dumps()
@@ -422,7 +423,7 @@ class Segment(BasePathMixin):
         self.scte35 = scte35
         self.scte35_duration = scte35_duration
         self.key = keyobject
-        self.parts = PartialSegmentList( [ PartialSegment(base_uri=self.base_uri, **partial) for partial in parts ] if parts else [] )
+        self.parts = PartialSegmentList([PartialSegment(base_uri=self.base_uri, **partial) for partial in parts] if parts else [])
         if init_section is not None:
             self.init_section = InitializationSection(self.base_uri, **init_section)
         else:
@@ -509,7 +510,7 @@ class SegmentList(list, GroupedBasePathMixin):
 
 
     def by_key(self, key):
-        return [ segment for segment in self if segment.key == key ]
+        return [segment for segment in self if segment.key == key]
 
 
 
@@ -574,11 +575,13 @@ class PartialSegment(BasePathMixin):
     def __str__(self):
         return self.dumps(None)
 
+
 class PartialSegmentList(list, GroupedBasePathMixin):
 
     def __str__(self):
         output = [str(part) for part in self]
         return '\n'.join(output)
+
 
 class Key(BasePathMixin):
     '''
@@ -636,6 +639,7 @@ class Key(BasePathMixin):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+
 class InitializationSection(BasePathMixin):
     '''
     Used to obtain Media Initialization Section required to
@@ -676,8 +680,10 @@ class InitializationSection(BasePathMixin):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+
 class SessionKey(Key):
     tag = ext_x_session_key
+
 
 class Playlist(BasePathMixin):
     '''
@@ -699,7 +705,7 @@ class Playlist(BasePathMixin):
         self.base_uri = base_uri
 
         resolution = stream_info.get('resolution')
-        if resolution != None:
+        if resolution is not None:
             resolution = resolution.strip('"')
             values = resolution.split('x')
             resolution_pair = (int(values[0]), int(values[1]))
@@ -958,6 +964,7 @@ class Start(object):
 
         return ext_x_start + ':' + ','.join(output)
 
+
 class RenditionReport(BasePathMixin):
     def __init__(self, base_uri, uri, last_msn, last_part=None):
         self.base_uri = base_uri
@@ -978,11 +985,13 @@ class RenditionReport(BasePathMixin):
     def __str__(self):
         return self.dumps()
 
+
 class RenditionReportList(list, GroupedBasePathMixin):
 
     def __str__(self):
         output = [str(report) for report in self]
         return '\n'.join(output)
+
 
 class ServerControl(object):
     def __init__(self, can_skip_until=None, can_block_reload=None,
@@ -1011,6 +1020,7 @@ class ServerControl(object):
     def __str__(self):
         return self.dumps()
 
+
 class Skip(object):
     def __init__(self, skipped_segments=None):
         self.skipped_segments = skipped_segments
@@ -1022,6 +1032,7 @@ class Skip(object):
     def __str__(self):
         return self.dumps()
 
+
 class PartInformation(object):
     def __init__(self, part_target=None):
         self.part_target = part_target
@@ -1032,6 +1043,7 @@ class PartInformation(object):
 
     def __str__(self):
         return self.dumps()
+
 
 class SessionData(object):
     def __init__(self, data_id, value=None, uri=None, language=None):
@@ -1055,6 +1067,7 @@ class SessionData(object):
     def __str__(self):
         return self.dumps()
 
+
 def find_key(keydata, keylist):
     if not keydata:
         return None
@@ -1070,6 +1083,7 @@ def find_key(keydata, keylist):
 
 def denormalize_attribute(attribute):
     return attribute.replace('_', '-').upper()
+
 
 def quoted(string):
     return '"%s"' % string

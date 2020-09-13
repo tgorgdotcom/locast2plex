@@ -1,4 +1,3 @@
-
 import os
 from m3u8.parser import is_url
 
