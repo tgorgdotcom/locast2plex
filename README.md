@@ -151,5 +151,5 @@ When submitting an issue, make sure to take note of the docker or command line o
 ## Credits
 #### A big THANK YOU to all who have co-developed locast2plex, and/or are answering issues in GitHub (sorry if I missed anyone!):
 ```
-CTJohnK, diana1055, FozzieBear, jcastilloalonso, steventwheeler, precision, deathbybandaid, mneumark, ratherDashing, tharris9d, tri-ler, teconmoon, dwkane, RedGreen007, gogorichie
+@CTJohnK, @diana1055, @FozzieBear, @jcastilloalonso, @dcd, @steventwheeler, @precision, @deathbybandaid, @mneumark, @ratherDashing, @tharris9d, @tri-ler, @teconmoon, @dwkane, @RedGreen007, @gogorichie, @teconmoon
 ```

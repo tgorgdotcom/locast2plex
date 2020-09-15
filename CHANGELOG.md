@@ -1,5 +1,24 @@
 # CHANGELOG
 
+## 0.6.0 (unreleased)
+ - Switch to Python 3 (Thanks @ratherDashing!)
+ - Scripts are now fully linted (Thanks @deathbybandaid!)
+ - Added all the market codes/FCC names so we don't have to add them when Locast enables them (Thanks @deathbybandaid!)
+
+## 0.5.3
+ - Updated Readme for spelling/clarity/credits (Thanks @tri-ler and @gogorichie!)
+ - Added ability to place config in /app/config folder for Kubernetes users (Thanks @dcd!)
+ - Added Detroit DMA support (Thanks @precision!)
+ - Fix tuner count comparison (Thanks @ratherDashing!)
+ - Refactored geolocation to mirror Locast methods (Thanks @FozzieBear!)
+ - Added new contributing document and added unreleased section in changelog
+ - Changed some var names for clarity.  
+ - Fixed a bug where users running on bare command line/terminal could not set their ports. (Thanks @teconmoon)
+ - Removed some old stuff in Dockerfile that are confusing users
+
+## 0.5.2
+ - Fixed a bug that prevented the success message from showing
+
 ## 0.5.1
  - Added success message at the end to indicate successful running
  - Fixed bug in docker-compose.yml
