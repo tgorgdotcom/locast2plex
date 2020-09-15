@@ -15,7 +15,7 @@ def handle_url_except(f):
             print("Error in function {}: {}".format(f.__name__, str(httpError.reason)))
             return False
         except Exception as e:
-            print("Error in function {}: {}".format(f.__name__, e.reason))
+            print("Error in function {}: {}".format(f.__name__, e.message or e.reason))
             return False
     return update_wrapper(wrapper_func, f)
 
