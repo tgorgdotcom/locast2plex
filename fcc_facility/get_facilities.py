@@ -1,4 +1,9 @@
-import urllib, zipfile, os, sys, datetime, json
+import urllib
+import zipfile
+import os
+import sys
+import datetime
+import json
 
 os.chdir(os.path.dirname(sys.argv[0]))
 
@@ -32,17 +37,17 @@ with open("facility.dat", "r") as fac_file:
 
         if fac_line_split[12] != '':
             fac_status_date_split = fac_line_split[12].split('/')
-        
+
         if fac_line_split[15] != '':
             fac_lic_expiration_date_split = fac_line_split[15].split('/')
-            fac_lic_expiration_date_datetime = datetime.datetime(int(fac_lic_expiration_date_split[2]), 
-                                                                 int(fac_lic_expiration_date_split[0]), 
-                                                                 int(fac_lic_expiration_date_split[1]), 
+            fac_lic_expiration_date_datetime = datetime.datetime(int(fac_lic_expiration_date_split[2]),
+                                                                 int(fac_lic_expiration_date_split[0]),
+                                                                 int(fac_lic_expiration_date_split[1]),
                                                                  23, 59, 59, 999999)
-        
+
         if fac_line_split[21] != '':
             fac_callsign_eff_date_split = fac_line_split[21].split('/')
-        
+
         if fac_line_split[29] != '':
             fac_last_change_date_split = fac_line_split[29].split('/')
 
@@ -79,9 +84,9 @@ with open("facility.dat", "r") as fac_file:
             "last_change_date": fac_line_split[29]
         }
 
-        if ((fac_obj['fac_status'] == 'LICEN') 
-                and (fac_lic_expiration_date_datetime != None) 
-                and (fac_lic_expiration_date_datetime > current_date) 
+        if ((fac_obj['fac_status'] == 'LICEN')
+                and (fac_lic_expiration_date_datetime is not None)
+                and (fac_lic_expiration_date_datetime > current_date)
                 and (fac_obj['fac_service'] in ('DT', 'TX', 'TV', 'TB', 'LD', 'DC'))):
             sys.stdout.write(fac_obj['fac_callsign'] + '.')
             sys.stdout.flush()

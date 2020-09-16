@@ -16,10 +16,8 @@ import re
 __all__ = ["parse_date", "ParseError", "UTC",
            "FixedOffset"]
 
-if sys.version_info >= (3, 0, 0):
-    _basestring = str
-else:
-    _basestring = basestring
+if sys.version_info.major >= 3:
+    basestring = str
 
 
 # Adapted from http://delete.me.uk/2005/03/iso8601.html
@@ -67,11 +65,14 @@ ISO8601_REGEX = re.compile(
     re.VERBOSE
 )
 
+
 class ParseError(Exception):
     """Raised when there is a problem parsing a date string"""
 
+
 if sys.version_info >= (3, 2, 0):
     UTC = datetime.timezone.utc
+
     def FixedOffset(offset_hours, offset_minutes, name):
         return datetime.timezone(
             datetime.timedelta(
@@ -80,6 +81,7 @@ if sys.version_info >= (3, 2, 0):
 else:
     # Yoinked from python docs
     ZERO = datetime.timedelta(0)
+
     class Utc(datetime.tzinfo):
         """UTC Timezone
 
@@ -150,6 +152,7 @@ def to_int(d, key, default_to_zero=False, default=None, required=True):
     else:
         return int(value)
 
+
 def parse_timezone(matches, default_timezone=UTC):
     """Parses ISO 8601 time zone specs into tzinfo offsets
 
@@ -171,6 +174,7 @@ def parse_timezone(matches, default_timezone=UTC):
         minutes = -minutes
     return FixedOffset(hours, minutes, description)
 
+
 def parse_date(datestring, default_timezone=UTC):
     """Parses ISO 8601 dates into datetime objects
 
@@ -188,7 +192,7 @@ def parse_date(datestring, default_timezone=UTC):
              constructing the datetime instance.
 
     """
-    if not isinstance(datestring, _basestring):
+    if not isinstance(datestring, basestring):
         raise ParseError("Expecting a string %r" % datestring)
     m = ISO8601_REGEX.match(datestring)
     if not m:
