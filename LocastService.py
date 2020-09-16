@@ -1,8 +1,12 @@
-import json, urllib2, time, os, sys, string
+# pylama:ignore=E722,E303
+import json
+import urllib2
+import sys
 import m3u8
 import re
 from functools import update_wrapper
 from datetime import datetime
+
 
 def handle_url_except(f):
     def wrapper_func(self, *args, **kwargs):
@@ -37,7 +41,7 @@ class LocastService:
 
 
     @handle_url_except
-    def login(self, username, password):        
+    def login(self, username, password):
 
         # check environment vars
         if (username is None):
@@ -55,10 +59,10 @@ class LocastService:
         # POST
         # {"username":"thomas_vg1@hotmail.com","password":"xxxxxxxx"}
 
-        
-        loginReq = urllib2.Request('https://api.locastnet.org/api/user/login', 
-                                    '{"username":"' + username + '","password":"' + password + '"}',
-                                    {'Content-Type': 'application/json'})
+
+        loginReq = urllib2.Request('https://api.locastnet.org/api/user/login',
+                                   '{"username":"' + username + '","password":"' + password + '"}',
+                                   {'Content-Type': 'application/json'})
 
         loginOpn = urllib2.urlopen(loginReq)
         loginRes = json.load(loginOpn)
@@ -73,8 +77,8 @@ class LocastService:
         print("Validating User Info...")
 
         # get user info and make sure we donated
-        userReq = urllib2.Request('https://api.locastnet.org/api/user/me', 
-                                headers={'Content-Type': 'application/json', 'authorization': 'Bearer ' + self.current_token})
+        userReq = urllib2.Request('https://api.locastnet.org/api/user/me',
+                                  headers={'Content-Type': 'application/json', 'authorization': 'Bearer ' + self.current_token})
 
         userOpn = urllib2.urlopen(userReq)
         userRes = json.load(userOpn)
@@ -82,9 +86,9 @@ class LocastService:
 
         print("User Info obtained.")
         print("User didDonate: {}".format(userRes['didDonate']))
-        # Check if the user has donated, and we got an actual expiration date.       
+        # Check if the user has donated, and we got an actual expiration date.
         if userRes['didDonate'] and userRes['donationExpire']:
-            # Check if donation has expired. 
+            # Check if donation has expired.
             donateExp = datetime.fromtimestamp(userRes['donationExpire'] / 1000)
             print("User donationExpire: {}".format(donateExp))
             if datetime.now() > donateExp:
@@ -99,18 +103,18 @@ class LocastService:
         print("Getting user location...")
 
         # Find the users location via lat\long or zipcode if specified,(lat\lon
-        # taking precedence if both are provided) otherwise use IP. Attempts to 
-        # mirror the geolocation found at locast.org\dma. Also allows for a 
-        # check that Locast reports the area as active. 
+        # taking precedence if both are provided) otherwise use IP. Attempts to
+        # mirror the geolocation found at locast.org\dma. Also allows for a
+        # check that Locast reports the area as active.
         if self.find_location():
-            print("Got location as {} - DMA {} - Lat\Lon {}\{}".format(self.current_city, 
-                                                                    self.current_dma,
-                                                                    self.current_location['latitude'],
-                                                                    self.current_location['longitude'])
-                                                                    )
+            print("Got location as {} - DMA {} - Lat\Lon {}\{}".format(self.current_city,
+                                                                       self.current_dma,
+                                                                       self.current_location['latitude'],
+                                                                       self.current_location['longitude'])
+                  )
         else:
             return False
-        # Check that Locast reports this market is currently active and available. 
+        # Check that Locast reports this market is currently active and available.
         if not self.active_dma:
             print("Locast reports that this DMA\Market area is not currently active!")
             return False
@@ -119,9 +123,9 @@ class LocastService:
 
     def find_location(self):
         '''
-        Mirror the geolocation options found at locast.org/dma since we can't 
-        rely on browser geolocation. If the user provides override coords, or 
-        override_zipcode, resolve location based on that data. Otherwise check 
+        Mirror the geolocation options found at locast.org/dma since we can't
+        rely on browser geolocation. If the user provides override coords, or
+        override_zipcode, resolve location based on that data. Otherwise check
         by external ip, (using ipinfo.io, as the site does).
 
         Calls to Locast return JSON in the following format:
@@ -134,19 +138,19 @@ class LocastService:
             u'active': bool,
             u'announcements': list,
             u'small_url': str
-        } 
+        }
         '''
         zip_format = re.compile(r'^[0-9]{5}$')
-        # Check if the user provided override coords. 
+        # Check if the user provided override coords.
         if self.mock_location:
             return self.get_coord_location()
         # Check if the user provided an override zipcode, and that it's valid.
         elif self.zipcode and zip_format.match(self.zipcode):
             return self.get_zip_location()
         else:
-            # If no override zip, or not a valid ZIP, fallback to IP location. 
+            # If no override zip, or not a valid ZIP, fallback to IP location.
             return self.get_ip_location()
-    
+
     @handle_url_except
     def get_zip_location(self):
         print("Getting location via provided zipcode {}".format(self.zipcode))
@@ -182,7 +186,7 @@ class LocastService:
         self.active_dma = geoRes['active']
         self.current_city = str(geoRes['name'])
         return True
-    
+
     @handle_url_except
     def get_coord_location(self):
         print("Getting location via provided lat\lon coordinates.")
@@ -210,9 +214,9 @@ class LocastService:
         try:
             # https://api.locastnet.org/api/watch/epg/504
             # get stations
-            stationsReq = urllib2.Request('https://api.locastnet.org/api/watch/epg/' + str(self.current_dma), 
-                                        headers={'Content-Type': 'application/json',
-                                                'authorization': 'Bearer ' + self.current_token})
+            stationsReq = urllib2.Request('https://api.locastnet.org/api/watch/epg/' + str(self.current_dma),
+                                          headers={'Content-Type': 'application/json',
+                                          'authorization': 'Bearer ' + self.current_token})
 
             stationsOpn = urllib2.urlopen(stationsReq)
             stationsRes = json.load(stationsOpn)
@@ -259,13 +263,13 @@ class LocastService:
             # whether the first char is a number (checking for result like "2.1 CBS")
             try:
                 # if number, get the channel and name -- we're done!
-                # Check if the the callsign has a float (x.x) value. Save as a 
+                # Check if the the callsign has a float (x.x) value. Save as a
                 # string though, to preserve any trailing 0s as on reported
                 # on https://github.com/tgorgdotcom/locast2plex/issues/42
 
                 assert(float(locast_station['callSign'].split()[0]))
                 stationsRes[index]['channel'] = locast_station['callSign'].split()[0]
-                
+
             except ValueError:
                 # result like "WDPN" or "CBS" in the callsign field, or the callsign in the name field
                 # then we'll search the callsign in a few different lists to get the station channel
@@ -279,48 +283,48 @@ class LocastService:
                 # example: WABCDT2
                 alt_callsign_result = self.detect_callsign(locast_station['name'])
 
-                
+
                 # check the known station json that we maintain whenever locast's
                 # reported station is iffy
                 # first look via "callsign" value
                 ks_result = self.find_known_station(locast_station, 'callSign', known_stations)
-                if ks_result != None:
+                if ks_result is not None:
                     stationsRes[index]['channel'] = ks_result['channel']
                     skip_sub_id = ks_result['skip_sub']
 
 
                 # then check "name"
-                if (not 'channel' in stationsRes[index]):
+                if ('channel' not in stationsRes[index]):
                     ks_result = self.find_known_station(locast_station, 'name', known_stations)
-                    if ks_result != None:
+                    if ks_result is not None:
                         stationsRes[index]['channel'] = ks_result['channel']
                         skip_sub_id = ks_result['skip_sub']
 
 
                 # if we couldn't find anything look through fcc list for a match.
                 # first by searching the callsign found in the "callsign" field
-                if (not 'channel' in stationsRes[index]) and callsign_result['verified']:
+                if ('channel' not in stationsRes[index]) and callsign_result['verified']:
                     result = self.find_fcc_station(callsign_result['callsign'], fcc_market, fcc_stations)
-                    if result != None:
+                    if result is not None:
                         stationsRes[index]['channel'] = result['channel']
                         skip_sub_id = result['analog']
 
-                
+
                 # if we still couldn't find it, see if there's a match via the
                 # "name" field
-                if (not 'channel' in stationsRes[index]) and alt_callsign_result['verified']:
+                if ('channel' not in stationsRes[index]) and alt_callsign_result['verified']:
                     result = self.find_fcc_station(alt_callsign_result['callsign'], fcc_market, fcc_stations)
-                    if result != None:
+                    if result is not None:
                         stationsRes[index]['channel'] = result['channel']
                         skip_sub_id = result['analog']
 
-                            
+
                 # locast usually adds a number in it's callsign (in either field).  that
                 # number is the subchannel
                 if (not skip_sub_id) and ('channel' in stationsRes[index]):
-                    if callsign_result['verified'] and (callsign_result['subchannel'] != None):
+                    if callsign_result['verified'] and (callsign_result['subchannel'] is not None):
                         stationsRes[index]['channel'] = stationsRes[index]['channel'] + '.' + callsign_result['subchannel']
-                    elif alt_callsign_result['verified'] and (alt_callsign_result['subchannel'] != None):
+                    elif alt_callsign_result['verified'] and (alt_callsign_result['subchannel'] is not None):
                         stationsRes[index]['channel'] = stationsRes[index]['channel'] + '.' + alt_callsign_result['subchannel']
                     else:
                         stationsRes[index]['channel'] = stationsRes[index]['channel'] + '.1'
@@ -328,7 +332,7 @@ class LocastService:
 
                 # mark stations that did not get a channel, but outside of the normal range.
                 # the user will have to weed these out in Plex...
-                if (not 'channel' in stationsRes[index]):
+                if ('channel' not in stationsRes[index]):
                     stationsRes[index]['channel'] = str(noneChannel)
                     noneChannel = noneChannel + 1
 
@@ -363,8 +367,9 @@ class LocastService:
             compare_string = compare_string[:-2]
 
         # verify if text from "callsign" is an actual callsign
-        if ( ((compare_string[0] == 'K') or (compare_string[0] == 'W')) and 
-             ((len(compare_string) == 3) or (len(compare_string) == 4)) ):
+        if (((compare_string[0] == 'K')
+           or (compare_string[0] == 'W')) and ((len(compare_string) == 3)
+           or (len(compare_string) == 4))):
             verified = True
 
         return {
@@ -381,12 +386,12 @@ class LocastService:
     def find_known_station(self, station, searchBy, known_stations):
 
         for known_station in known_stations:
-            if ( (known_station[searchBy] == station[searchBy]) and 
-                 (known_station['dma'] == station['dma']) ):
+            if ((known_station[searchBy] == station[searchBy])
+               and (known_station['dma'] == station['dma'])):
 
                 returnChannel = known_station['rootChannel']
 
-                if known_station['subChannel'] != None:
+                if known_station['subChannel'] is not None:
                     return {
                         "channel": returnChannel + '.' + known_station['subChannel'],
                         "skip_sub": True
@@ -441,12 +446,12 @@ class LocastService:
         print("Getting station info for " + station_id + "...")
 
         try:
-            videoUrlReq = urllib2.Request('https://api.locastnet.org/api/watch/station/' + 
-                                                str(station_id) + '/' + 
-                                                self.current_location['latitude'] + '/' + 
-                                                self.current_location['longitude'], 
-                                            headers={'Content-Type': 'application/json',
-                                                    'authorization': 'Bearer ' + self.current_token})
+            videoUrlReq = urllib2.Request('https://api.locastnet.org/api/watch/station/' +
+                                          str(station_id) + '/' +
+                                          self.current_location['latitude'] + '/' +
+                                          self.current_location['longitude'],
+                                          headers={'Content-Type': 'application/json',
+                                                   'authorization': 'Bearer ' + self.current_token})
             videoUrlOpn = urllib2.urlopen(videoUrlReq)
             videoUrlRes = json.load(videoUrlOpn)
             videoUrlOpn.close()
@@ -464,37 +469,36 @@ class LocastService:
         print("Determining best video stream for " + station_id + "...")
 
         bestStream = None
-        
+
         # find the heighest stream url resolution and save it to the list
         videoUrlM3u = m3u8.load(videoUrlRes['streamUrl'])
 
-        
+
 
         print("Found " + str(len(videoUrlM3u.playlists)) + " Playlists")
-        
+
         if len(videoUrlM3u.playlists) > 0:
             for videoStream in videoUrlM3u.playlists:
-                if bestStream == None:
+                if bestStream is not None:
                     bestStream = videoStream
 
-                elif ((videoStream.stream_info.resolution[0] > bestStream.stream_info.resolution[0]) and 
-                    (videoStream.stream_info.resolution[1] > bestStream.stream_info.resolution[1])):
+                elif ((videoStream.stream_info.resolution[0] > bestStream.stream_info.resolution[0]) and
+                      (videoStream.stream_info.resolution[1] > bestStream.stream_info.resolution[1])):
                     bestStream = videoStream
 
-                elif ((videoStream.stream_info.resolution[0] == bestStream.stream_info.resolution[0]) and 
-                    (videoStream.stream_info.resolution[1] == bestStream.stream_info.resolution[1]) and
-                    (videoStream.stream_info.bandwidth > bestStream.stream_info.bandwidth)):
+                elif ((videoStream.stream_info.resolution[0] == bestStream.stream_info.resolution[0]) and
+                      (videoStream.stream_info.resolution[1] == bestStream.stream_info.resolution[1]) and
+                      (videoStream.stream_info.bandwidth > bestStream.stream_info.bandwidth)):
                     bestStream = videoStream
-        
 
-            if bestStream != None:
-                print(station_id + " will use " + 
-                        str(bestStream.stream_info.resolution[0]) + "x" + str(bestStream.stream_info.resolution[1]) + 
-                        " resolution at " + str(bestStream.stream_info.bandwidth) + "bps")
+
+            if bestStream is not None:
+                print(station_id + " will use " +
+                      str(bestStream.stream_info.resolution[0]) + "x" + str(bestStream.stream_info.resolution[1]) +
+                      " resolution at " + str(bestStream.stream_info.bandwidth) + "bps")
 
                 return bestStream.absolute_uri
 
         else:
             print("No variant streams found for this station.  Assuming single stream only.")
             return videoUrlRes['streamUrl']
-

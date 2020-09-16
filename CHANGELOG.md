@@ -2,10 +2,10 @@
 
 ## 0.6.0 (unreleased)
  - Switch to Python 3 (Thanks @ratherDashing!)
- - Scripts are now fully linted (Thanks @deathbybandaid!)
  - Added all the market codes/FCC names so we don't have to add them when Locast enables them (Thanks @deathbybandaid!)
 
 ## 0.5.3
+ - Scripts are now fully linted (Thanks @deathbybandaid!)
  - Updated Readme for spelling/clarity/credits (Thanks @tri-ler and @gogorichie!)
  - Added ability to place config in /app/config folder for Kubernetes users (Thanks @dcd!)
  - Added Detroit DMA support (Thanks @precision!)

@@ -9,18 +9,22 @@ import pytest
 
 from iso8601 import iso8601
 
+
 def test_iso8601_regex():
     assert iso8601.ISO8601_REGEX.match("2006-10-11T00:14:33Z")
+
 
 def test_fixedoffset_eq():
     # See https://bitbucket.org/micktwomey/pyiso8601/issues/19
     datetime.tzinfo() == iso8601.FixedOffset(2, 0, '+2:00')
+
 
 def test_parse_no_timezone_different_default():
     tz = iso8601.FixedOffset(2, 0, "test offset")
     d = iso8601.parse_date("2007-01-01T08:00:00", default_timezone=tz)
     assert d == datetime.datetime(2007, 1, 1, 8, 0, 0, 0, tz)
     assert d.tzinfo == tz
+
 
 def test_parse_utc_different_default():
     """Z should mean 'UTC', not 'default'.
@@ -29,6 +33,7 @@ def test_parse_utc_different_default():
     tz = iso8601.FixedOffset(2, 0, "test offset")
     d = iso8601.parse_date("2007-01-01T08:00:00Z", default_timezone=tz)
     assert d == datetime.datetime(2007, 1, 1, 8, 0, 0, 0, iso8601.UTC)
+
 
 @pytest.mark.parametrize("invalid_date, error_string", [
     ("2013-10-", "Unable to parse date string"),
@@ -51,6 +56,7 @@ def test_parse_invalid_date(invalid_date, error_string):
         iso8601.parse_date(invalid_date)
     assert exc.errisinstance(iso8601.ParseError)
     assert str(exc.value).startswith(error_string)
+
 
 @pytest.mark.parametrize("valid_date,expected_datetime,isoformat", [
     ("2007-06-23 06:40:34.00Z", datetime.datetime(2007, 6, 23, 6, 40, 34, 0, iso8601.UTC), "2007-06-23T06:40:34+00:00"),  # Handle a separator other than T
