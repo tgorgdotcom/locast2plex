@@ -12,6 +12,14 @@ for rules E303, E501, W504, W605.  I will be pretty lenient in taking pull reque
 so don't worry if you're not already familiar with linting.  A good primer
 on [linting in Python is here](https://realpython.com/python-code-quality/)
 
+## Versioning Scheme
+We use the Semantic versioning scheme, with the following naming conventions for non-stable 
+releases:
+ - The 0.x series is beta
+ - Releases marked `-alpha` or `-beta` at the end of the version number. An additional number,
+   starting from 1, is added after this postfix to separate different version numbers. 
+   Example: `2.0.0-beta3`
+
 ## Road Map and New feature discussion
 Plans for close-at-hand future releases are typically listed in CHANGELOG. New features 
 discussions can be made in GitHub as a new issue.  I can also look into setting up other 

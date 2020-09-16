@@ -479,7 +479,7 @@ class LocastService:
 
         if len(videoUrlM3u.playlists) > 0:
             for videoStream in videoUrlM3u.playlists:
-                if bestStream is not None:
+                if bestStream is None:
                     bestStream = videoStream
 
                 elif ((videoStream.stream_info.resolution[0] > bestStream.stream_info.resolution[0]) and

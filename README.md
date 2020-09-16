@@ -20,6 +20,8 @@ Time is limited due to other major factors (work, wife/kids), so please understa
 
 As always, pull requests are welcome.
 
+### Beta Software
+Currently this is BETA, so regressions may be common in updated versions.  I hope for us to be "officially" stable at v1.0
 
 
 ## Set up options:
