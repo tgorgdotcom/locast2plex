@@ -7,13 +7,7 @@ import sys
 import ssl
 import os
 import posixpath
-
-try:
-    from urllib.request import urlopen, Request
-    from urllib.parse import urlparse, urljoin
-except ImportError:  # Python 2.x
-    from urllib2 import urlopen, Request
-    from urlparse import urlparse, urljoin
+import urllib
 
 from m3u8.model import (M3U8, Segment, SegmentList, PartialSegment,
                         PartialSegmentList, Key, Playlist, IFramePlaylist,
@@ -21,8 +15,6 @@ from m3u8.model import (M3U8, Segment, SegmentList, PartialSegment,
                         RenditionReport, RenditionReportList, ServerControl,
                         Skip, PartInformation)
 from m3u8.parser import parse, is_url, ParseError
-
-PYTHON_MAJOR_VERSION = sys.version_info
 
 __all__ = ('M3U8', 'Segment', 'SegmentList', 'PartialSegment',
            'PartialSegmentList', 'Key', 'Playlist', 'IFramePlaylist',
@@ -49,8 +41,6 @@ def load(uri, timeout=None, headers={}, custom_tags_parser=None, verify_ssl=True
     '''
     Retrieves the content from a given URI and returns a M3U8 object.
     Raises ValueError if invalid content or IOError if request fails.
-    Raises socket.timeout(python 2.7+) or urllib2.URLError(python 2.6) if
-    timeout happens when loading from uri
     '''
     if is_url(uri):
         return _load_from_uri(uri, timeout, headers, custom_tags_parser, verify_ssl)
@@ -61,31 +51,24 @@ def load(uri, timeout=None, headers={}, custom_tags_parser=None, verify_ssl=True
 
 
 def _load_from_uri(uri, timeout=None, headers={}, custom_tags_parser=None, verify_ssl=True):
-    request = Request(uri, headers=headers)
+    request = urllib.request.Request(uri, headers=headers)
     context = None
     if not verify_ssl:
         context = ssl._create_unverified_context()
-    resource = urlopen(request, timeout=timeout, context=context)
+    resource = urllib.request.urlopen(request, timeout=timeout, context=context)
     base_uri = _parsed_url(resource.geturl())
-    if PYTHON_MAJOR_VERSION < (3,):
-        content = _read_python2x(resource)
-    else:
-        content = _read_python3x(resource)
+    content = _read_python(resource)
     return M3U8(content, base_uri=base_uri, custom_tags_parser=custom_tags_parser)
 
 
 def _parsed_url(url):
-    parsed_url = urlparse(url)
+    parsed_url = urllib.parse.urlparse(url)
     prefix = parsed_url.scheme + '://' + parsed_url.netloc
     base_path = posixpath.normpath(parsed_url.path + '/..')
-    return urljoin(prefix, base_path)
+    return urllib.parse.urljoin(prefix, base_path)
 
 
-def _read_python2x(resource):
-    return resource.read().strip()
-
-
-def _read_python3x(resource):
+def _read_python(resource):
     return resource.read().decode(
         resource.headers.get_content_charset(failobj="utf-8")
     )
