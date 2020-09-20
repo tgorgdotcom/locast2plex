@@ -147,6 +147,8 @@ For now, there is no option for straight Python users to disable port 1900.  Let
 
 ## Submitting an issue
 
+Be sure to search the issues to see if there are any fixes found for similar issues.  If you see a similar *unresolved* issue, please create a new issue rather than piggybacking an existing one.  Most of the time people who have similar errors have different reasons for that error, necessitating a new issue.
+
 When submitting an issue, make sure to take note of the docker or command line output, and include OS details and what method of install you have chosen (Docker, docker-compose, or via terminal).  **Note that logs reveal username and approximate location information (in latitude/longitude as well as Locast's Nielsen market id), so be sure to look through what you post and clear out any data you want hidden before posting.** 
 
 
