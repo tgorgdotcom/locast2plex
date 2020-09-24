@@ -1,21 +1,26 @@
 # pylama:ignore=E722,E303
 import json
-import urllib2
 import sys
-import m3u8
 import re
 from functools import update_wrapper
 from datetime import datetime
+import urllib.error
+import urllib.parse
+import urllib.request
+
+import m3u8
+
+
 
 
 def handle_url_except(f):
     def wrapper_func(self, *args, **kwargs):
         try:
             return f(self, *args, **kwargs)
-        except urllib2.URLError as urlError:
+        except urllib.error.URLError as urlError:
             print("Error in function {}: {}".format(f.__name__, str(urlError.reason)))
             return False
-        except urllib2.HTTPError as httpError:
+        except urllib.error.HTTPError as httpError:
             print("Error in function {}: {}".format(f.__name__, str(httpError.reason)))
             return False
         except Exception as e:
@@ -60,11 +65,11 @@ class LocastService:
         # {"username":"thomas_vg1@hotmail.com","password":"xxxxxxxx"}
 
 
-        loginReq = urllib2.Request('https://api.locastnet.org/api/user/login',
-                                   '{"username":"' + username + '","password":"' + password + '"}',
-                                   {'Content-Type': 'application/json'})
+        loginReq = urllib.request.Request('https://api.locastnet.org/api/user/login',
+                                          ('{"username":"' + username + '","password":"' + password + '"}').encode("utf-8"),
+                                          {'Content-Type': 'application/json'})
 
-        loginOpn = urllib2.urlopen(loginReq)
+        loginOpn = urllib.request.urlopen(loginReq)
         loginRes = json.load(loginOpn)
         loginOpn.close()
 
@@ -77,10 +82,11 @@ class LocastService:
         print("Validating User Info...")
 
         # get user info and make sure we donated
-        userReq = urllib2.Request('https://api.locastnet.org/api/user/me',
-                                  headers={'Content-Type': 'application/json', 'authorization': 'Bearer ' + self.current_token})
+        userReq = urllib.request.Request('https://api.locastnet.org/api/user/me',
+                                         headers={'Content-Type': 'application/json',
+                                                  'authorization': 'Bearer ' + self.current_token})
 
-        userOpn = urllib2.urlopen(userReq)
+        userOpn = urllib.request.urlopen(userReq)
         userRes = json.load(userOpn)
         userOpn.close()
 
@@ -155,8 +161,8 @@ class LocastService:
     def get_zip_location(self):
         print("Getting location via provided zipcode {}".format(self.zipcode))
         # Get geolocation via Locast, based on user provided zipcode.
-        req = urllib2.Request('https://api.locastnet.org/api/watch/dma/zip/{}'.format(self.zipcode))
-        resp = urllib2.urlopen(req)
+        req = urllib.request.Request('https://api.locastnet.org/api/watch/dma/zip/{}'.format(self.zipcode))
+        resp = urllib.request.urlopen(req)
         geoRes = json.load(resp)
         resp.close()
         self.current_location = {'latitude': str(geoRes['latitude']), 'longitude': str(geoRes['longitude'])}
@@ -169,16 +175,16 @@ class LocastService:
     def get_ip_location(self):
         print("Getting location via IP Address.")
         # Get geolocation via Locast. Mirror their website and use https://ipinfo.io/ip to get external IP.
-        ip_resp = urllib2.urlopen('https://ipinfo.io/ip')
+        ip_resp = urllib.request.urlopen('https://ipinfo.io/ip')
         ip = ip_resp.read().strip()
         ip_resp.close()
 
         print("Got external IP {}.".format(ip))
 
         # Query Locast by IP, using a 'client_ip' header.
-        req = urllib2.Request('https://api.locastnet.org/api/watch/dma/ip')
+        req = urllib.request.Request('https://api.locastnet.org/api/watch/dma/ip')
         req.add_header('client_ip', ip)
-        resp = urllib2.urlopen(req)
+        resp = urllib.request.urlopen(req)
         geoRes = json.load(resp)
         resp.close()
         self.current_location = {'latitude': str(geoRes['latitude']), 'longitude': str(geoRes['longitude'])}
@@ -193,9 +199,9 @@ class LocastService:
         # Get geolocation via Locast, using lat\lon coordinates.
         lat = self.mock_location['latitude']
         lon = self.mock_location['longitude']
-        req = urllib2.Request('https://api.locastnet.org/api/watch/dma/{}/{}'.format(lat, lon))
+        req = urllib.request.Request('https://api.locastnet.org/api/watch/dma/{}/{}'.format(lat, lon))
         req.add_header('Content-Type', 'application/json')
-        resp = urllib2.urlopen(req)
+        resp = urllib.request.urlopen(req)
         geoRes = json.load(resp)
         resp.close()
         self.current_location = {'latitude': str(geoRes['latitude']), 'longitude': str(geoRes['longitude'])}
@@ -214,18 +220,18 @@ class LocastService:
         try:
             # https://api.locastnet.org/api/watch/epg/504
             # get stations
-            stationsReq = urllib2.Request('https://api.locastnet.org/api/watch/epg/' + str(self.current_dma),
-                                          headers={'Content-Type': 'application/json',
-                                          'authorization': 'Bearer ' + self.current_token})
+            stationsReq = urllib.request.Request('https://api.locastnet.org/api/watch/epg/' + str(self.current_dma),
+                                                 headers={'Content-Type': 'application/json',
+                                                          'authorization': 'Bearer ' + self.current_token})
 
-            stationsOpn = urllib2.urlopen(stationsReq)
+            stationsOpn = urllib.request.urlopen(stationsReq)
             stationsRes = json.load(stationsOpn)
             stationsOpn.close()
 
-        except urllib2.URLError as urlError:
+        except urllib.error.URLError as urlError:
             print("Error when getting the list of stations: " + str(urlError.reason))
             return False
-        except urllib2.HTTPError as httpError:
+        except urllib.error.HTTPError as httpError:
             print("Error when getting the list of stations: " + str(httpError.reason))
             return False
         except:
@@ -446,19 +452,19 @@ class LocastService:
         print("Getting station info for " + station_id + "...")
 
         try:
-            videoUrlReq = urllib2.Request('https://api.locastnet.org/api/watch/station/' +
-                                          str(station_id) + '/' +
-                                          self.current_location['latitude'] + '/' +
-                                          self.current_location['longitude'],
-                                          headers={'Content-Type': 'application/json',
-                                                   'authorization': 'Bearer ' + self.current_token})
-            videoUrlOpn = urllib2.urlopen(videoUrlReq)
+            videoUrlReq = urllib.request.Request('https://api.locastnet.org/api/watch/station/' +
+                                                 str(station_id) + '/' +
+                                                 self.current_location['latitude'] + '/' +
+                                                 self.current_location['longitude'],
+                                                 headers={'Content-Type': 'application/json',
+                                                          'authorization': 'Bearer ' + self.current_token})
+            videoUrlOpn = urllib.request.urlopen(videoUrlReq)
             videoUrlRes = json.load(videoUrlOpn)
             videoUrlOpn.close()
-        except urllib2.URLError as urlError:
+        except urllib.error.URLError as urlError:
             print("Error when getting the video URL: " + str(urlError.reason))
             return False
-        except urllib2.HTTPError as httpError:
+        except urllib.error.HTTPError as httpError:
             print("Error when getting the video URL: " + str(httpError.reason))
             return False
         except:

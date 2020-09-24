@@ -35,7 +35,7 @@ As of 0.3, are now two ways to use locast2plex -- either via a Docker container,
 
 - If you choose to run this as a command line program, the following OSs and programs are required:
     - Windows (Mac and Linux probably work too, but this is untested)
-    - Python 2.7.x
+    - Python 3.x
     - ffmpeg (if running under Mac or Linux).  Mac users can usually install this via homebrew, and Linux through their distribution's respective package manager
 
 
@@ -53,7 +53,7 @@ As of 0.3, are now two ways to use locast2plex -- either via a Docker container,
     - If running both Plex and locast2plex in Docker containers on the same server, the IP configured in Docker to access the locast2plex container.  *How this would be set up is outside of the scope of this README, unfortunately*.
 
    There might be additional edge cases here for particular server setups.  Check the [Troubleshooting Wiki Page](https://github.com/tgorgdotcom/locast2plex/wiki/Troubleshooting-and-Common-Issues) on GitHub for more help with your particular setup.
-   
+
    Note that the ports used are:
     - `6077` (tcp) for the hdhomerun device emulation service (and can be changed)
     - `1900` (udp) for SSDP discovery (which cannot be changed -- see troubleshooting for workarounds).
@@ -65,7 +65,7 @@ As of 0.3, are now two ways to use locast2plex -- either via a Docker container,
     locast_password=<locast password>
     plex_accessible_ip=<ip found in step 1>
     ```
-    
+
     If you are changing port `6077`, you will need to add an `plex_accessible_port` entry in the config file, like so:
     ```
     plex_accessible_port=<new port number>
@@ -88,9 +88,9 @@ As of 0.3, are now two ways to use locast2plex -- either via a Docker container,
             - Run `docker-compose up` in the release folder.
 
         2. Docker Command (no need to download anything):
-        
+
             Run the following command:
-                
+
             `docker run -v <full path to config file>:/app/config/config.ini -p 6077:6077 -p 1900:1900/udp tgorg/locast2plex`
 
             If you are changing port `6077`, you will also need to modify the port number in the first `-p` argument, like so:
@@ -98,15 +98,15 @@ As of 0.3, are now two ways to use locast2plex -- either via a Docker container,
             `docker run -v <full path to config file>:/app/config/config.ini -p 12345:6077 -p 1900:1900/udp tgorg/locast2plex`
 
 
-    - **Via Terminal/Command Line**: 
+    - **Via Terminal/Command Line**:
         - Download the latest locast2plex release files on GitHub and extract to a folder
         - Copy the newly created config file into the newly created release folder, making sure it's named `config.ini`.
         - Run the following command in the release folder:
-        
-          `python main.py`
+
+          `python3 main.py`
 
 
-4. Configure Plex to use locast2plex: 
+4. Configure Plex to use locast2plex:
     - In the Plex settings on your server or web interface, select Live TV/DVR on the left-hand menu and add a device as you would normally add a HDHomeRun.  
 
     - You may need to enter the address manually as SSDP autodiscovery is buggy at the moment.  The address will be the value you set as the `docker_accessible_ip` and `docker_accessible_port` (or it's default value) fields in `config.ini` (for example 127.0.0.1:6077).  
@@ -124,7 +124,7 @@ As of 0.3, are now two ways to use locast2plex -- either via a Docker container,
 
 ### Incorrect channel numbers
 
-Sometimes locast2plex will not be able to get the correct channel/subchannel number (perhaps an outdated number or a channel number from a similarly named station outside of the market).  Stations we don't recognize at all have their channel numbers assigned sequentially from 1000 on. 
+Sometimes locast2plex will not be able to get the correct channel/subchannel number (perhaps an outdated number or a channel number from a similarly named station outside of the market).  Stations we don't recognize at all have their channel numbers assigned sequentially from 1000 on.
 
 For now, the easiest way to fix this is to find the correct channel id by research.  Usually searching the callsign via Google reveals the correct channel number (sometimes we'll see an updated callsign on a the first result as well).  Wikipedia is also extremely helpful here.
 
@@ -138,9 +138,9 @@ SSDP is used to *try* to enable Plex autodetection of the locast2plex instance, 
   `docker run -v <full path to config file:/app/config/config.ini -p 6077:6077 tgorg/locast2plex`
 
 For `docker-compose` users, delete the following line from `docker-compose.yml`:
-    
+
   `- "1900:1900/udp"`
-  
+
 For now, there is no option for straight Python users to disable port 1900.  Let me know in GitHub if this is an important option to implement
 
 > ### Additional Troubleshooting notes can be found on the  [Troubleshooting Wiki Page](https://github.com/tgorgdotcom/locast2plex/wiki/Troubleshooting-and-Common-Issues)

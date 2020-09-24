@@ -1,15 +1,11 @@
 import os
+import urllib
 from m3u8.parser import is_url
-
-try:
-    import urlparse as url_parser
-except ImportError:
-    import urllib.parse as url_parser
 
 
 def _urijoin(base_uri, path):
     if is_url(base_uri):
-        return url_parser.urljoin(base_uri, path)
+        return urllib.parse.urljoin(base_uri, path)
     else:
         return os.path.normpath(os.path.join(base_uri, path.strip('/')))
 

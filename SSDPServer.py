@@ -80,11 +80,11 @@ class SSDPServer:
 
         lines = header.split('\r\n')
         cmd = lines[0].split(' ')
-        lines = map(lambda x: x.replace(': ', ':', 1), lines[1:])
-        lines = filter(lambda x: len(x) > 0, lines)
+        lines = [x.replace(': ', ':', 1) for x in lines[1:]]
+        lines = [x for x in lines if len(x) > 0]
 
         headers = [x.split(':', 1) for x in lines]
-        headers = dict(map(lambda x: (x[0].lower(), x[1]), headers))
+        headers = dict([(x[0].lower(), x[1]) for x in headers])
 
         logger.info('SSDP command %s %s - from %s:%d' % (cmd[0], cmd[1], host, port))
         logger.debug('with headers: {}.'.format(headers))
@@ -144,7 +144,7 @@ class SSDPServer:
         logger.info('Discovery request for %s' % headers['st'])
 
         # Do we know about this service?
-        for i in self.known.values():
+        for i in list(self.known.values()):
             if i['MANIFESTATION'] == 'remote':
                 continue
             if headers['st'] == 'ssdp:all' and i['SILENT']:
@@ -153,7 +153,7 @@ class SSDPServer:
                 response = ['HTTP/1.1 200 OK']
 
                 usn = None
-                for k, v in i.items():
+                for k, v in list(i.items()):
                     if k == 'USN':
                         usn = v
                     if k not in ('MANIFESTATION', 'SILENT', 'HOST'):
@@ -179,7 +179,7 @@ class SSDPServer:
             'HOST: %s:%d' % (SSDP_ADDR, SSDP_PORT),
             'NTS: ssdp:alive',
         ]
-        stcpy = dict(self.known[usn].items())
+        stcpy = dict(list(self.known[usn].items()))
         stcpy['NT'] = stcpy['ST']
         del stcpy['ST']
         del stcpy['MANIFESTATION']
@@ -187,7 +187,7 @@ class SSDPServer:
         del stcpy['HOST']
         del stcpy['last-seen']
 
-        resp.extend(map(lambda x: ': '.join(x), stcpy.items()))
+        resp.extend([': '.join(x) for x in list(stcpy.items())])
         resp.extend(('', ''))
         logger.debug('do_notify content', resp)
         try:
@@ -207,14 +207,14 @@ class SSDPServer:
             'NTS: ssdp:byebye',
         ]
         try:
-            stcpy = dict(self.known[usn].items())
+            stcpy = dict(list(self.known[usn].items()))
             stcpy['NT'] = stcpy['ST']
             del stcpy['ST']
             del stcpy['MANIFESTATION']
             del stcpy['SILENT']
             del stcpy['HOST']
             del stcpy['last-seen']
-            resp.extend(map(lambda x: ': '.join(x), stcpy.items()))
+            resp.extend([': '.join(x) for x in list(stcpy.items())])
             resp.extend(('', ''))
             logger.debug('do_byebye content', resp)
             if self.sock:
