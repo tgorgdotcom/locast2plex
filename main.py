@@ -8,13 +8,13 @@ import threading
 import socket
 import time
 import errno
-import SocketServer
-import ConfigParser
-import SSDPServer
-import LocastService
-from templates import templates
-from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+import configparser
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from multiprocessing import Process
+
+import LocastService
+import SSDPServer
+from templates import templates
 
 
 
@@ -42,7 +42,7 @@ def is_docker():
 
 
 
-        
+
 
 # with help from https://www.acmesystems.it/python_http
 # and https://stackoverflow.com/questions/21631799/how-can-i-pass-parameters-to-a-requesthandler
@@ -62,7 +62,7 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
     local_locast = None
     bytes_per_read = 1024000
 
-    def do_GET(self): 
+    def do_GET(self):
         base_url = self.host_address + ':' + self.host_port
 
         # paths and logic mostly pulled from telly:routes.go: https://github.com/tellytv/telly
@@ -70,7 +70,7 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header('Content-type', 'application/xml')
             self.end_headers()
-            self.wfile.write(self.templates['xmlDiscover'].format(self.reporting_model, self.uuid, base_url))
+            self.wfile.write(self.templates['xmlDiscover'].format(self.reporting_model, self.uuid, base_url).encode('utf-8'))
 
         elif self.path == '/discover.json':
             self.send_response(200)
@@ -81,16 +81,16 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
                                                                    self.tuner_count,
                                                                    self.reporting_firmware_ver,
                                                                    self.uuid,
-                                                                   base_url))
+                                                                   base_url).encode('utf-8'))
 
         elif self.path == '/lineup_status.json':
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.end_headers()
             if self.station_scan:
-                self.wfile.write(self.templates['jsonLineupStatus'])
+                self.wfile.write(self.templates['jsonLineupStatus'].encode('utf-8'))
             else:
-                self.wfile.write(self.templates['jsonLineupComplete'])
+                self.wfile.write(self.templates['jsonLineupComplete'].encode('utf-8'))
 
         elif self.path == '/lineup.json':  # TODO
             self.send_response(200)
@@ -104,7 +104,7 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
                     returnJSON = returnJSON + ','
 
             returnJSON = "[" + returnJSON + "]"
-            self.wfile.write(returnJSON)
+            self.wfile.write(returnJSON.encode('utf-8'))
 
         elif self.path == '/lineup.xml':  # TODO
             self.send_response(200)
@@ -114,7 +114,7 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
             for station_item in self.station_list:
                 returnXML = returnXML + self.templates['xmlLineupItem'].format(station_item['channel'], station_item['name'], base_url + '/watch/' + str(station_item['id']))
             returnXML = "<Lineup>" + returnXML + "</Lineup>"
-            self.wfile.write(returnXML)
+            self.wfile.write(returnXML.encode('utf-8'))
 
         elif self.path.startswith('/watch'):
             channelId = self.path.replace('/watch/', '')
@@ -173,7 +173,7 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
             self.send_response(501)
             self.send_header('Content-type', 'text/html')
             self.end_headers()
-            self.wfile.write(self.templates['htmlError'].format('501 - Not Implemented'))
+            self.wfile.write(self.templates['htmlError'].format('501 - Not Implemented').encode('utf-8'))
 
         return
 
@@ -226,7 +226,7 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
                 self.send_response(400)
                 self.send_header('Content-type', 'text/html')
                 self.end_headers()
-                self.wfile.write(self.templates['htmlError'].format(queryData['scan'] + ' is not a valid scan command'))
+                self.wfile.write(self.templates['htmlError'].format(queryData['scan'] + ' is not a valid scan command').encode('utf-8'))
 
         else:
             print("Unknown request to " + contentPath)
@@ -313,7 +313,7 @@ if __name__ == '__main__':
         'concurrent_listeners': '10'  # to convert
     }
 
-    config_handler = ConfigParser.RawConfigParser()
+    config_handler = configparser.RawConfigParser()
     if os.path.exists('config/config.ini'):
         config_handler.read('config/config.ini')
     else:
