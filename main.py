@@ -29,21 +29,6 @@ def clean_exit():
 
 
 
-# from https://stackoverflow.com/a/43880536
-def is_docker():
-    path = "/proc/self/cgroup"
-    if not os.path.isfile(path):
-        return False
-    with open(path) as f:
-        for line in f:
-            if re.match("\d+:[\w=]+:/docker(-[ce]e)?/\w+", line):
-                return True
-        return False
-
-
-
-
-
 # with help from https://www.acmesystems.it/python_http
 # and https://stackoverflow.com/questions/21631799/how-can-i-pass-parameters-to-a-requesthandler
 class PlexHttpHandler(BaseHTTPRequestHandler):
@@ -347,13 +332,6 @@ if __name__ == '__main__':
     REPORTING_MODEL = config["reporting_model"]
     REPORTING_FIRMWARE_NAME = config["reporting_firmware_name"]
     REPORTING_FIRMWARE_VER = config["reporting_firmware_ver"]
-
-    # docker users only configure the outside port, but for those running in command line/terminal
-    # these will be the same
-    if not is_docker():
-        LISTEN_PORT = HOST_PORT
-        LISTEN_ADDY = HOST_ADDY
-
 
     print("Locast2Plex v" + CURRENT_VERSION)
 
