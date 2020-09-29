@@ -29,21 +29,6 @@ def clean_exit():
 
 
 
-# from https://stackoverflow.com/a/43880536
-def is_docker():
-    path = "/proc/self/cgroup"
-    if not os.path.isfile(path):
-        return False
-    with open(path) as f:
-        for line in f:
-            if re.match("\d+:[\w=]+:/docker(-[ce]e)?/\w+", line):
-                return True
-        return False
-
-
-
-
-
 # with help from https://www.acmesystems.it/python_http
 # and https://stackoverflow.com/questions/21631799/how-can-i-pass-parameters-to-a-requesthandler
 class PlexHttpHandler(BaseHTTPRequestHandler):
@@ -303,6 +288,8 @@ if __name__ == '__main__':
         'override_longitude': None,
         'override_zipcode': None,
         'bytes_per_read': '1152000',
+        'advertise_ip': '0.0.0.0',
+        'advertise_port': '80',
         'plex_accessible_ip': '0.0.0.0',
         'plex_accessible_port': '6077',
         'tuner_count': '3',
@@ -336,10 +323,12 @@ if __name__ == '__main__':
         print("Tuner count set outside of 1-4 range.  Setting to default")
         TUNER_COUNT = 3
 
+    ADVERTISE_PORT = config["advertise_port"]
+    ADVERTISE_ADDY = config["advertise_ip"]
     LOCAST_USERNAME = config["locast_username"]
     LOCAST_PASSWORD = config["locast_password"]
-    HOST_PORT = config["plex_accessible_port"]
-    HOST_ADDY = config["plex_accessible_ip"]
+    LISTEN_PORT = config["plex_accessible_port"]
+    LISTEN_ADDY = config["plex_accessible_ip"]
     BYTES_PER_READ = int(config["bytes_per_read"])
     OVERRIDE_LATITUDE = config["override_latitude"]
     OVERRIDE_LONGITUDE = config["override_longitude"]
@@ -347,13 +336,6 @@ if __name__ == '__main__':
     REPORTING_MODEL = config["reporting_model"]
     REPORTING_FIRMWARE_NAME = config["reporting_firmware_name"]
     REPORTING_FIRMWARE_VER = config["reporting_firmware_ver"]
-
-    # docker users only configure the outside port, but for those running in command line/terminal
-    # these will be the same
-    if not is_docker():
-        LISTEN_PORT = HOST_PORT
-        LISTEN_ADDY = HOST_ADDY
-
 
     print("Locast2Plex v" + CURRENT_VERSION)
 
@@ -405,7 +387,7 @@ if __name__ == '__main__':
             serverSocket.listen(CONCURRENT_LISTENERS)
 
             config = {
-                "host": (HOST_ADDY, HOST_PORT),
+                "host": (ADVERTISE_ADDY, ADVERTISE_PORT),
                 "listen": (LISTEN_ADDY, LISTEN_PORT),
                 "uuid": DEVICE_UUID,
                 "tuner_count": TUNER_COUNT,
@@ -419,7 +401,7 @@ if __name__ == '__main__':
                 PlexHttpServer(serverSocket, config, templates, station_list, locast)
 
             print("Starting SSDP server...")
-            ssdpServer = Process(target=ssdpServerProcess, args=(HOST_ADDY, HOST_PORT, DEVICE_UUID))
+            ssdpServer = Process(target=ssdpServerProcess, args=(ADVERTISE_ADDY, ADVERTISE_PORT, DEVICE_UUID))
             ssdpServer.daemon = True
 
             print("Locast2Plex is active and listening...")
