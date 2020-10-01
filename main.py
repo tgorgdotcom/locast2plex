@@ -63,7 +63,10 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
     bytes_per_read = 1024000
 
     def do_GET(self):
-        base_url = self.host_address + ':' + self.host_port
+        # Build our base URL on the 'Host' value the client contacted us with.
+        # If missing (oolllddd HTTP1.0 clients), fallback to manually specified.
+        fallback_base = self.host_address + ':' + self.host_port
+        base_url = self.headers.get('Host', fallback_base)
 
         # paths and logic mostly pulled from telly:routes.go: https://github.com/tellytv/telly
         if (self.path == '/') or (self.path == '/device.xml'):
