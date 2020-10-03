@@ -1,48 +1,49 @@
 # pylama:ignore=E722,E303
 import json
 import sys
-import re
-from functools import update_wrapper
 from datetime import datetime
 import urllib.error
 import urllib.parse
 import urllib.request
+import pathlib
 
 import m3u8
 
-
-
-
-def handle_url_except(f):
-    def wrapper_func(self, *args, **kwargs):
-        try:
-            return f(self, *args, **kwargs)
-        except urllib.error.URLError as urlError:
-            print("Error in function {}: {}".format(f.__name__, str(urlError.reason)))
-            return False
-        except urllib.error.HTTPError as httpError:
-            print("Error in function {}: {}".format(f.__name__, str(httpError.reason)))
-            return False
-        except Exception as e:
-            print("Error in function {}: {}".format(f.__name__, e.message or e.reason))
-            return False
-    return update_wrapper(wrapper_func, f)
+from L2PTools import handle_url_except
+from dma_markets import get_dma_info
+import Facilities
 
 
 class LocastService:
 
+    location = {
+                "latitude": None,
+                "longitude": None,
+                "DMA": None,
+                "city": None,
+                "active": False
+                }
+
     current_token = None
-    current_location = None
-    current_dma = None
-    current_city = None
-    active_dma = None
     base_data_folder = None
+    json_data_folder = None
+
+    tv_facilities = None
+    known_stations = None
 
 
-    def __init__(self, base_folder, mock_location, zipcode):
-        self.base_data_folder = base_folder
-        self.mock_location = mock_location
-        self.zipcode = zipcode
+    def __init__(self, script_dir, config, location):
+        self.base_data_folder = pathlib.Path(script_dir).joinpath('data')
+        self.json_data_folder = pathlib.Path(self.base_data_folder).joinpath('json')
+        self.facility_cache_folder = pathlib.Path(config.config["locast2plex"]["cache_dir"]).joinpath('facilities')
+        self.mock_location = config.config["location"]["mock_location"]
+        self.zipcode = config.config["location"]["override_zipcode"]
+
+        #  Json files
+        self.tv_facilities = pathlib.Path(self.facility_cache_folder).joinpath('tv_facilities.json')
+        self.known_stations = pathlib.Path(self.json_data_folder).joinpath('known_stations.json')
+
+        self.location = location
 
 
     @handle_url_except
@@ -104,114 +105,10 @@ class LocastService:
             print("Error!  User must donate for this to work.")
             return False
 
-
-        # Check for user's location
-        print("Getting user location...")
-
-        # Find the users location via lat\long or zipcode if specified,(lat\lon
-        # taking precedence if both are provided) otherwise use IP. Attempts to
-        # mirror the geolocation found at locast.org\dma. Also allows for a
-        # check that Locast reports the area as active.
-        if self.find_location():
-            print("Got location as {} - DMA {} - Lat\Lon {}\{}".format(self.current_city,
-                                                                       self.current_dma,
-                                                                       self.current_location['latitude'],
-                                                                       self.current_location['longitude'])
-                  )
-        else:
-            return False
-        # Check that Locast reports this market is currently active and available.
-        if not self.active_dma:
-            print("Locast reports that this DMA\Market area is not currently active!")
-            return False
-
-        return True
-
-    def find_location(self):
-        '''
-        Mirror the geolocation options found at locast.org/dma since we can't
-        rely on browser geolocation. If the user provides override coords, or
-        override_zipcode, resolve location based on that data. Otherwise check
-        by external ip, (using ipinfo.io, as the site does).
-
-        Calls to Locast return JSON in the following format:
-        {
-            u'DMA': str (DMA Number),
-            u'large_url': str,
-            u'name': str,
-            u'longitude': lon,
-            u'latitude': lat,
-            u'active': bool,
-            u'announcements': list,
-            u'small_url': str
-        }
-        '''
-        zip_format = re.compile(r'^[0-9]{5}$')
-        # Check if the user provided override coords.
-        if self.mock_location:
-            return self.get_coord_location()
-        # Check if the user provided an override zipcode, and that it's valid.
-        elif self.zipcode and zip_format.match(self.zipcode):
-            return self.get_zip_location()
-        else:
-            # If no override zip, or not a valid ZIP, fallback to IP location.
-            return self.get_ip_location()
-
-    @handle_url_except
-    def get_zip_location(self):
-        print("Getting location via provided zipcode {}".format(self.zipcode))
-        # Get geolocation via Locast, based on user provided zipcode.
-        req = urllib.request.Request('https://api.locastnet.org/api/watch/dma/zip/{}'.format(self.zipcode))
-        resp = urllib.request.urlopen(req)
-        geoRes = json.load(resp)
-        resp.close()
-        self.current_location = {'latitude': str(geoRes['latitude']), 'longitude': str(geoRes['longitude'])}
-        self.current_dma = str(geoRes['DMA'])
-        self.active_dma = geoRes['active']
-        self.current_city = str(geoRes['name'])
-        return True
-
-    @handle_url_except
-    def get_ip_location(self):
-        print("Getting location via IP Address.")
-        # Get geolocation via Locast. Mirror their website and use https://ipinfo.io/ip to get external IP.
-        ip_resp = urllib.request.urlopen('https://ipinfo.io/ip')
-        ip = ip_resp.read().strip()
-        ip_resp.close()
-
-        print("Got external IP {}.".format(ip))
-
-        # Query Locast by IP, using a 'client_ip' header.
-        req = urllib.request.Request('https://api.locastnet.org/api/watch/dma/ip')
-        req.add_header('client_ip', ip)
-        resp = urllib.request.urlopen(req)
-        geoRes = json.load(resp)
-        resp.close()
-        self.current_location = {'latitude': str(geoRes['latitude']), 'longitude': str(geoRes['longitude'])}
-        self.current_dma = str(geoRes['DMA'])
-        self.active_dma = geoRes['active']
-        self.current_city = str(geoRes['name'])
-        return True
-
-    @handle_url_except
-    def get_coord_location(self):
-        print("Getting location via provided lat\lon coordinates.")
-        # Get geolocation via Locast, using lat\lon coordinates.
-        lat = self.mock_location['latitude']
-        lon = self.mock_location['longitude']
-        req = urllib.request.Request('https://api.locastnet.org/api/watch/dma/{}/{}'.format(lat, lon))
-        req.add_header('Content-Type', 'application/json')
-        resp = urllib.request.urlopen(req)
-        geoRes = json.load(resp)
-        resp.close()
-        self.current_location = {'latitude': str(geoRes['latitude']), 'longitude': str(geoRes['longitude'])}
-        self.current_dma = str(geoRes['DMA'])
-        self.active_dma = geoRes['active']
-        self.current_city = str(geoRes['name'])
         return True
 
 
-    def get_stations(self):
+    def get_stations(self, config):
 
         # TODO: check if we dont return any results
 
@@ -220,7 +117,7 @@ class LocastService:
         try:
             # https://api.locastnet.org/api/watch/epg/504
             # get stations
-            stationsReq = urllib.request.Request('https://api.locastnet.org/api/watch/epg/' + str(self.current_dma),
+            stationsReq = urllib.request.Request('https://api.locastnet.org/api/watch/epg/' + str(self.location["DMA"]),
                                                  headers={'Content-Type': 'application/json',
                                                           'authorization': 'Bearer ' + self.current_token})
 
@@ -242,21 +139,19 @@ class LocastService:
         # get the actual channel number by comparing the callsign with
         # the FCC facilities list
         print("Loading FCC Stations list...")
+        Facilities.get_facilities(config)
 
-        with open(self.base_data_folder + "tv_stations.json", "r") as fcc_station_file_obj:
+        with open(self.tv_facilities, "r") as fcc_station_file_obj:
             fcc_stations = json.load(fcc_station_file_obj)
-            with open("fcc_dma_markets.json", "r") as fcc_dma_file_obj:
-                dma_mapping = json.load(fcc_dma_file_obj)
+        fcc_stations = fcc_stations["fcc_station_list"]
 
-            try:
-                fcc_market = dma_mapping[str(self.current_dma)]
-            except KeyError:
-                print("No DMA to FCC mapping found.  Poke the developer to get it into locast2plex.")
-                return False
+        fcc_market = get_dma_info(str(self.location["DMA"]))
+        if not len(fcc_market):
+            print("No DMA to FCC mapping found.  Poke the developer to get it into locast2plex.")
+            return False
 
 
-
-        with open(self.base_data_folder + 'known_stations.json', "r") as known_stations_file_obj:
+        with open(self.known_stations, "r") as known_stations_file_obj:
             known_stations = json.load(known_stations_file_obj)
 
 
@@ -277,6 +172,7 @@ class LocastService:
                 stationsRes[index]['channel'] = locast_station['callSign'].split()[0]
 
             except ValueError:
+
                 # result like "WDPN" or "CBS" in the callsign field, or the callsign in the name field
                 # then we'll search the callsign in a few different lists to get the station channel
                 # note: callsign field usually has the most recent data if it contains an actual callsign
@@ -310,19 +206,23 @@ class LocastService:
                 # if we couldn't find anything look through fcc list for a match.
                 # first by searching the callsign found in the "callsign" field
                 if ('channel' not in stationsRes[index]) and callsign_result['verified']:
-                    result = self.find_fcc_station(callsign_result['callsign'], fcc_market, fcc_stations)
-                    if result is not None:
-                        stationsRes[index]['channel'] = result['channel']
-                        skip_sub_id = result['analog']
+                    for city_item in fcc_market:
+                        result = self.find_fcc_station(callsign_result['callsign'], fcc_market[city_item]["city"], fcc_stations)
+                        if result is not None:
+                            stationsRes[index]['channel'] = result['channel']
+                            skip_sub_id = result['analog']
+                            break
 
 
                 # if we still couldn't find it, see if there's a match via the
                 # "name" field
                 if ('channel' not in stationsRes[index]) and alt_callsign_result['verified']:
-                    result = self.find_fcc_station(alt_callsign_result['callsign'], fcc_market, fcc_stations)
-                    if result is not None:
-                        stationsRes[index]['channel'] = result['channel']
-                        skip_sub_id = result['analog']
+                    for city_item in fcc_market:
+                        result = self.find_fcc_station(alt_callsign_result['callsign'], fcc_market[city_item]["city"], fcc_stations)
+                        if result is not None:
+                            stationsRes[index]['channel'] = result['channel']
+                            skip_sub_id = result['analog']
+                            break
 
 
                 # locast usually adds a number in it's callsign (in either field).  that
@@ -344,12 +244,6 @@ class LocastService:
 
 
         return stationsRes
-
-
-
-
-
-
 
 
     def detect_callsign(self, compare_string):
@@ -442,20 +336,14 @@ class LocastService:
 
         return None
 
-
-
-
-
-
-
     def get_station_stream_uri(self, station_id):
         print("Getting station info for " + station_id + "...")
 
         try:
             videoUrlReq = urllib.request.Request('https://api.locastnet.org/api/watch/station/' +
                                                  str(station_id) + '/' +
-                                                 self.current_location['latitude'] + '/' +
-                                                 self.current_location['longitude'],
+                                                 self.location['latitude'] + '/' +
+                                                 self.location['longitude'],
                                                  headers={'Content-Type': 'application/json',
                                                           'authorization': 'Bearer ' + self.current_token})
             videoUrlOpn = urllib.request.urlopen(videoUrlReq)

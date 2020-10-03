@@ -25,6 +25,20 @@ SERVER_ID = 'ZeWaren example SSDP Server'
 logger = logging.getLogger()
 
 
+# mostly from https://github.com/ZeWaren/python-upnp-ssdp-example
+def ssdpServerProcess(config):
+    ssdp = SSDPServer()
+    ssdp.register('local',
+                  'uuid:' + config.config["main"]["uuid"] + '::upnp:rootdevice',
+                  'upnp:rootdevice',
+                  'http://' + config.config["locast2plex"]["listen_address"] + ':' +
+                  config.config["locast2plex"]["listen_port"] + '/device.xml')
+    try:
+        ssdp.run()
+    except KeyboardInterrupt:
+        pass
+
+
 class SSDPServer:
     """A class implementing a SSDP server.  The notify_received and
     searchReceived methods are called when the appropriate type of
