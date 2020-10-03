@@ -107,7 +107,7 @@ As of 0.3, are now two ways to use locast2plex -- either via a Docker container,
 
 
 4. Configure Plex to use locast2plex:
-    - In the Plex settings on your server or web interface, select Live TV/DVR on the left-hand menu and add a device as you would normally add a HDHomeRun.  
+    - In the Plex settings on your server or web interface, select Live TV/DVR on the left-hand menu and add a device as you would normally add a networked tuner.  
 
     - You may need to enter the address manually as SSDP autodiscovery is buggy at the moment.  The address will be the value you set as the `docker_accessible_ip` and `docker_accessible_port` (or it's default value) fields in `config.ini` (for example 127.0.0.1:6077).  
 

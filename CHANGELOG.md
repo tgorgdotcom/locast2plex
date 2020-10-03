@@ -1,9 +1,7 @@
 # CHANGELOG
 
-## 0.6.0 (unreleased)
- - Switch to Python 3 (Thanks @ratherDashing!)
- - Added all the market codes/FCC names so we don't have to add them when Locast enables them (Thanks @deathbybandaid!)
- - Update FCC Facility list
+## 0.6.0
+ - Switch to Python 3 (Thanks @ratherDashing! & @deathbybandaid)
 
 ## 0.5.3
  - Scripts are now fully linted (Thanks @deathbybandaid!)

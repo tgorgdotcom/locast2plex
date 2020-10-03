@@ -22,7 +22,7 @@ templates = {
     <device>
         <deviceType>urn:schemas-upnp-org:device:MediaServer:1</deviceType>
         <friendlyName>Locast2Plex</friendlyName>
-        <manufacturer>Silicondust</manufacturer>
+        <manufacturer>Locast2Plex</manufacturer>
         <modelName>{0}</modelName>
         <modelNumber>{0}</modelNumber>
         <serialNumber/>
@@ -46,7 +46,7 @@ templates = {
     # NOTE: double curly brace escaped to prevent format from breaking
     'jsonDiscover': """{{
     "FriendlyName": "Locast2Plex",
-    "Manufacturer": "Silicondust",
+    "Manufacturer": "Locast2Plex",
     "ModelNumber": "{0}",
     "FirmwareName": "{1}",
     "TunerCount": {2},
