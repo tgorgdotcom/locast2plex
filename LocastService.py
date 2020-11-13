@@ -67,7 +67,7 @@ class LocastService:
 
         loginReq = urllib.request.Request('https://api.locastnet.org/api/user/login',
                                           ('{"username":"' + username + '","password":"' + password + '"}').encode("utf-8"),
-                                          {'Content-Type': 'application/json'})
+                                          {'Content-Type': 'application/json', 'User-agent': 'Mozilla/5.0'})
 
         loginOpn = urllib.request.urlopen(loginReq)
         loginRes = json.load(loginOpn)
