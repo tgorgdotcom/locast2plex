@@ -84,7 +84,8 @@ class LocastService:
         # get user info and make sure we donated
         userReq = urllib.request.Request('https://api.locastnet.org/api/user/me',
                                          headers={'Content-Type': 'application/json',
-                                                  'authorization': 'Bearer ' + self.current_token})
+                                                  'authorization': 'Bearer ' + self.current_token, 
+                                                  'User-agent': 'Mozilla/5.0'})
 
         userOpn = urllib.request.urlopen(userReq)
         userRes = json.load(userOpn)
@@ -162,6 +163,7 @@ class LocastService:
         print("Getting location via provided zipcode {}".format(self.zipcode))
         # Get geolocation via Locast, based on user provided zipcode.
         req = urllib.request.Request('https://api.locastnet.org/api/watch/dma/zip/{}'.format(self.zipcode))
+        req.add_header('User-agent','Mozilla/5.0')
         resp = urllib.request.urlopen(req)
         geoRes = json.load(resp)
         resp.close()
@@ -184,6 +186,7 @@ class LocastService:
         # Query Locast by IP, using a 'client_ip' header.
         req = urllib.request.Request('https://api.locastnet.org/api/watch/dma/ip')
         req.add_header('client_ip', ip)
+        req.add_header('User-agent','Mozilla/5.0')
         resp = urllib.request.urlopen(req)
         geoRes = json.load(resp)
         resp.close()
@@ -201,6 +204,7 @@ class LocastService:
         lon = self.mock_location['longitude']
         req = urllib.request.Request('https://api.locastnet.org/api/watch/dma/{}/{}'.format(lat, lon))
         req.add_header('Content-Type', 'application/json')
+        req.add_header('User-agent','Mozilla/5.0')
         resp = urllib.request.urlopen(req)
         geoRes = json.load(resp)
         resp.close()
@@ -222,7 +226,8 @@ class LocastService:
             # get stations
             stationsReq = urllib.request.Request('https://api.locastnet.org/api/watch/epg/' + str(self.current_dma),
                                                  headers={'Content-Type': 'application/json',
-                                                          'authorization': 'Bearer ' + self.current_token})
+                                                          'authorization': 'Bearer ' + self.current_token,
+                                                          'User-agent': 'Mozilla/5.0'})
 
             stationsOpn = urllib.request.urlopen(stationsReq)
             stationsRes = json.load(stationsOpn)
@@ -457,7 +462,9 @@ class LocastService:
                                                  self.current_location['latitude'] + '/' +
                                                  self.current_location['longitude'],
                                                  headers={'Content-Type': 'application/json',
-                                                          'authorization': 'Bearer ' + self.current_token})
+                                                          'authorization': 'Bearer ' + self.current_token, 
+                                                          'User-agent': 'Mozilla/5.0'})
+
             videoUrlOpn = urllib.request.urlopen(videoUrlReq)
             videoUrlRes = json.load(videoUrlOpn)
             videoUrlOpn.close()

@@ -124,7 +124,7 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
             self.send_header('Content-type', 'video/mpeg; codecs="avc1.4D401E')
             self.end_headers()
 
-            ffmpeg_proc = subprocess.Popen(["ffmpeg", "-i", channelUri, "-codec", "copy", "-f", "mpegts", "pipe:1"], stdout=subprocess.PIPE)
+            ffmpeg_proc = subprocess.Popen(["ffmpeg", "-i", channelUri, "-user_agent", "'Mozilla/5.0'", "-codec", "copy", "-f", "mpegts", "pipe:1"], stdout=subprocess.PIPE)
 
 
             # get initial videodata. if that works, then keep grabbing it
