@@ -484,7 +484,8 @@ class LocastService:
         bestStream = None
 
         # find the heighest stream url resolution and save it to the list
-        videoUrlM3u = m3u8.load(videoUrlRes['streamUrl'])
+        videoUrlM3u = m3u8.load(videoUrlRes['streamUrl'], headers={'authorization': 'Bearer ' + self.current_token,
+                                                                   'User-agent': 'Mozilla/5.0'})
 
 
 
