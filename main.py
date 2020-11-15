@@ -285,8 +285,17 @@ def ssdpServerProcess(address, port, uuid):
     except KeyboardInterrupt:
         pass
 
-
-
+def get_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # doesn't even have to be reachable
+        s.connect(('10.255.255.255', 1))
+        IP = s.getsockname()[0]
+    except Exception:
+        IP = '127.0.0.1'
+    finally:
+         s.close()
+    return IP
 
 
 # Startup Logic
@@ -398,10 +407,10 @@ if __name__ == '__main__':
         station_list = locast.get_stations()
 
         try:
-            print("Starting device server on " + config['plex_accessible_ip'] + ":" + config['plex_accessible_port'])
+            print("Starting device server on " + get_ip() + ":" + config['plex_accessible_port'])
             serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            serverSocket.bind((LISTEN_ADDY, int(LISTEN_PORT)))
+            serverSocket.bind((get_ip(), int(LISTEN_PORT)))
             serverSocket.listen(CONCURRENT_LISTENERS)
 
             config = {
