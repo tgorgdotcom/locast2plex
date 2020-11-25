@@ -19,7 +19,6 @@ class DMAFinder():
 
     DEFAULT_USER_AGENT = 'Mozilla/5.0'
 
-
     def __init__(self, config):
         self.mock_location = config["main"]["mock_location"]
         self.zipcode = config["main"]["override_zipcode"]
@@ -44,14 +43,12 @@ class DMAFinder():
             print("Locast reports that this DMA\Market area is not currently active!")
             clean_exit(1)
 
-
     def set_location(self, geoRes):
         self.location["latitude"] = str(geoRes['latitude'])
         self.location["longitude"] = str(geoRes['longitude'])
         self.location["DMA"] = str(geoRes['DMA'])
         self.location["active"] = geoRes['active']
         self.location["city"] = str(geoRes['name'])
-
 
     def find_location(self):
         '''
@@ -71,7 +68,7 @@ class DMAFinder():
             u'announcements': list,
             u'small_url': str
         }
-        Note, lat/long is of the location given to the service, not the lat/lon 
+        Note, lat/long is of the location given to the service, not the lat/lon
         of the DMA
         '''
         zip_format = re.compile(r'^[0-9]{5}$')
@@ -85,7 +82,6 @@ class DMAFinder():
             # If no override zip, or not a valid ZIP, fallback to IP location.
             return self.get_ip_location()
 
-
     @handle_url_except
     def get_zip_location(self):
         print("Getting location via provided zipcode {}".format(self.zipcode))
@@ -97,7 +93,6 @@ class DMAFinder():
         resp.close()
         self.set_location(geoRes)
         return True
-
 
     @handle_url_except
     def get_ip_location(self):
@@ -118,7 +113,6 @@ class DMAFinder():
         resp.close()
         self.set_location(geoRes)
         return True
-
 
     @handle_url_except
     def get_coord_location(self):

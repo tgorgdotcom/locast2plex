@@ -27,13 +27,13 @@ class UserConfig():
             "locast_username": None,
             "locast_password": None,
             'disable_ssdp': False,
-            'epg_update_frequency': 43200, # 12 hours
+            'epg_update_frequency': 43200,  # 12 hours
             'epg_update_days': 7,
             'override_latitude': None,
             'override_longitude': None,
             'override_zipcode': None,
             'mock_location': None,
-            'ffmpeg_path': None, 
+            'ffmpeg_path': None,
             'use_old_plex_interface': False,
             'bytes_per_read': '1152000',
             'reporting_model': 'l2p',
@@ -45,12 +45,10 @@ class UserConfig():
         }
     }
 
-
     def __init__(self, script_dir, opersystem, args):
         self.get_config_path(script_dir, args)
         self.import_config()
         self.config_adjustments(opersystem, script_dir)
-
 
     def get_config_path(self, script_dir, args):
         if args.cfg:
@@ -67,13 +65,11 @@ class UserConfig():
             clean_exit(1)
         print("Loading Configuration File: " + str(self.config_file))
 
-
     def import_config(self):
         self.config_handler.read(self.config_file)
         for each_section in self.config_handler.sections():
             for (each_key, each_val) in self.config_handler.items(each_section):
                 self.data[each_section.lower()][each_key.lower()] = each_val
-
 
     def write(self, section, key, value):
         self.data[section][key] = value
@@ -81,7 +77,6 @@ class UserConfig():
 
         with open(self.config_file, 'w') as config_file:
             self.config_handler.write(config_file)
-
 
     def config_adjustments(self, opersystem, script_dir):
 
@@ -105,7 +100,7 @@ class UserConfig():
               str(self.data["main"]["plex_accessible_port"]))
 
         if os.path.exists(pathlib.Path(script_dir).joinpath('is_container')):
-            self.data["main"]["bind_ip"] = "0.0.0.0" 
+            self.data["main"]["bind_ip"] = "0.0.0.0"
             self.data["main"]["bind_port"] = "6077"
         else:
             self.data["main"]["bind_ip"] = self.data["main"]["plex_accessible_ip"]

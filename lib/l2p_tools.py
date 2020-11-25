@@ -1,6 +1,5 @@
 import os
 import sys
-import re
 import urllib.error
 import urllib.parse
 import urllib.request

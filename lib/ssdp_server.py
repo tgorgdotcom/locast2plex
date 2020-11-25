@@ -22,8 +22,6 @@ SSDP_ADDR = '239.255.255.250'
 SERVER_ID = 'locast2plex'
 
 
-
-
 # mostly from https://github.com/ZeWaren/python-upnp-ssdp-example
 def ssdp_process(config):
     ssdp = SSDPServer()
@@ -65,7 +63,7 @@ class SSDPServer:
         # https://tldp.org/HOWTO/Multicast-HOWTO-6.html/
         mreq = struct.pack('4sl', socket.inet_aton(SSDP_ADDR), socket.INADDR_ANY)
         self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
-        
+
         self.sock.settimeout(1)
 
         while True:
@@ -101,7 +99,7 @@ class SSDPServer:
         headers = dict([(x[0].lower(), x[1]) for x in headers])
 
         print('SSDP command %s %s - from %s:%d' % (cmd[0], cmd[1], host, port))
-        #print('with headers: {}.'.format(headers))
+        # print('with headers: {}.'.format(headers))
         if cmd[0] == 'M-SEARCH' and cmd[1] == '*':
             # SSDP discovery
             self.discovery_request(headers, (host, port))

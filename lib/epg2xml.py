@@ -10,7 +10,7 @@ import xml.etree.ElementTree as ET
 
 import lib.stations as stations
 from lib.l2p_tools import clean_exit
-from lib.filelock import Timeout, FileLock
+from lib.filelock import FileLock
 
 
 def epg_process(config, location):
@@ -18,10 +18,10 @@ def epg_process(config, location):
     try:
         while True:
             time.sleep(config["main"]["epg_update_frequency"])
-            
+
             print("Fetching EPG for DMA " + str(location["DMA"]) + ".")
             generate_epg_file(config, location)
-            
+
     except KeyboardInterrupt:
         clean_exit()
 
@@ -63,7 +63,7 @@ def generate_epg_file(config, location):
     dma_channels = stations.get_dma_stations_and_channels(config, location)
 
     # Make a date range to pull
-    todaydate = datetime.datetime.utcnow().replace(hour=0,minute=0,second=0,microsecond=0) # make sure we're dealing with UTC!
+    todaydate = datetime.datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)  # make sure we're dealing with UTC!
     dates_to_pull = [todaydate]
     days_to_pull = int(config["main"]["epg_update_days"])
     for x in range(1, days_to_pull - 1):
@@ -99,7 +99,7 @@ def generate_epg_file(config, location):
 
                 if 'logo226Url' in channel_item.keys():
                     channel_logo = channel_item['logo226Url']
-                    
+
                 elif 'logoUrl' in channel_item.keys():
                     channel_logo = channel_item['logoUrl']
 
@@ -111,7 +111,7 @@ def generate_epg_file(config, location):
                 sub_el(c_out, 'display-name', text=channel_callsign)
                 sub_el(c_out, 'display-name', text=channel_realname)
 
-                if channel_logo != None:
+                if channel_logo is not None:
                     sub_el(c_out, 'icon', src=channel_logo)
 
         # Now list Program informations
@@ -123,13 +123,13 @@ def generate_epg_file(config, location):
 
             if 'logo226Url' in channel_item.keys():
                 channel_logo = channel_item['logo226Url']
-                
+
             elif 'logoUrl' in channel_item.keys():
                 channel_logo = channel_item['logoUrl']
 
             for event in channel_item['listings']:
 
-                tm_start = tm_parse(event['startTime']) # this is returned from locast in UTC
+                tm_start = tm_parse(event['startTime'])  # this is returned from locast in UTC
                 tm_duration = event['duration'] * 1000
                 tm_end = tm_parse(event['startTime'] + tm_duration)
 

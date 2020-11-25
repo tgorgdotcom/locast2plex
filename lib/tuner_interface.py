@@ -4,8 +4,6 @@ import time
 import errno
 import socket
 import urllib
-import pathlib
-from io import StringIO
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import lib.stations as stations
@@ -24,7 +22,6 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
     rmg_station_scans = []
     local_locast = None
     location = None
-        
 
     def do_GET(self):
         base_url = self.config['main']['plex_accessible_ip'] + ':' + self.config['main']['plex_accessible_port']
@@ -44,26 +41,26 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
 
         # paths and logic mostly pulled from telly:routes.go: https://github.com/tellytv/telly
         if (contentPath == '/') and (not self.config['main']['use_old_plex_interface']):
-            self.do_response(200, 
-                             'application/xml', 
+            self.do_response(200,
+                             'application/xml',
                              templates['xmlRmgIdentification'].format(self.config['main']['reporting_friendly_name']))
-        
+
         elif (contentPath == '/') or (contentPath == '/device.xml'):
             templateName = 'xmlDiscover'
 
             if self.config['main']['use_old_plex_interface']:
                 templateName = 'xmlDiscoverOld'
 
-            self.do_response(200, 
-                             'application/xml', 
+            self.do_response(200,
+                             'application/xml',
                              templates[templateName].format(self.config['main']['reporting_friendly_name'],
-                                                             self.config['main']['reporting_model'], 
-                                                             self.config['main']['uuid'], 
-                                                             base_url))
+                                                            self.config['main']['reporting_model'],
+                                                            self.config['main']['uuid'],
+                                                            base_url))
 
         elif contentPath == '/discover.json':
-            self.do_response(200, 
-                             'application/json', 
+            self.do_response(200,
+                             'application/json',
                              templates['jsonDiscover'].format(self.config['main']['reporting_friendly_name'],
                                                               self.config['main']['reporting_model'],
                                                               self.config['main']['reporting_firmware_name'],
@@ -77,7 +74,7 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
                 returnJSON = templates['jsonLineupStatus']
             else:
                 returnJSON = templates['jsonLineupComplete'].replace("Antenna", self.config['main']['tuner_type'])
-                
+
             self.do_response(200, 'application/json', returnJSON)
 
         elif contentPath == '/lineup.json':  # TODO
@@ -110,9 +107,9 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
         elif contentPath.startswith('/auto/v'):
             self.do_tuning(contentPath.replace('/auto/v', ''))
 
-        elif ((contentPath.startswith('/devices/' + self.config['main']['uuid'] + '/media/')) and 
+        elif ((contentPath.startswith('/devices/' + self.config['main']['uuid'] + '/media/')) and
               (not self.config['main']['use_old_plex_interface'])):
-            
+
             channel_no = contentPath.replace('/devices/' + self.config['main']['uuid'] + '/media/', '')
             channel_no = urllib.parse.unquote(channel_no).replace('id://', '').replace('/', '')
 
@@ -133,7 +130,7 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
         elif contentPath == '/debug.json':
             self.do_response(200, 'application/json')
 
-        elif ((contentPath == '/devices/' + self.config['main']['uuid']) and 
+        elif ((contentPath == '/devices/' + self.config['main']['uuid']) and
               (not self.config['main']['use_old_plex_interface'])):
             tuner_list = ""
 
@@ -150,16 +147,16 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
                     formatted_xml = templates['xmlRmgTunerStreaming'].format(str(index), scan_status)
                     tuner_list = tuner_list + formatted_xml
 
-            self.do_response(200, 
-                             'application/xml', 
+            self.do_response(200,
+                             'application/xml',
                              templates['xmlRmgDeviceIdentity'].format(self.config['main']['uuid'],
                                                                       self.config['main']['reporting_friendly_name'],
-                                                                      self.config['main']['reporting_model'], 
+                                                                      self.config['main']['reporting_model'],
                                                                       self.config['main']['tuner_count'],
                                                                       base_url,
                                                                       tuner_list))
 
-        elif((contentPath == '/devices/' + self.config['main']['uuid'] + '/channels') and 
+        elif((contentPath == '/devices/' + self.config['main']['uuid'] + '/channels') and
              (not self.config['main']['use_old_plex_interface'])):
             station_list = stations.get_dma_stations_and_channels(self.config, self.location)
 
@@ -183,7 +180,6 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
             self.do_response(501, 'text/html', templates['htmlError'].format('501 - Not Implemented'))
 
         return
-
 
     def do_POST(self):
         base_url = self.config['main']['plex_accessible_ip'] + ':' + self.config['main']['plex_accessible_port']
@@ -242,18 +238,18 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
                 print("Unknown scan command " + queryData['scan'])
                 self.do_response(400, 'text/html', templates['htmlError'].format(queryData['scan'] + ' is not a valid scan command'))
 
-        elif ((contentPath.startswith('/devices/discover') or contentPath.startswith('/devices/probe')) and 
+        elif ((contentPath.startswith('/devices/discover') or contentPath.startswith('/devices/probe')) and
               (not self.config['main']['use_old_plex_interface'])):
 
-            self.do_response(200, 
-                             'application/xml', 
+            self.do_response(200,
+                             'application/xml',
                              templates['xmlRmgDeviceDiscover'].format(self.config['main']['uuid'],
                                                                       self.config['main']['reporting_friendly_name'],
-                                                                      self.config['main']['reporting_model'], 
+                                                                      self.config['main']['reporting_model'],
                                                                       self.config['main']['tuner_count'],
                                                                       base_url))
-        
-        elif ((contentPath == '/devices/' + self.config['main']['uuid'] + '/scan') and 
+
+        elif ((contentPath == '/devices/' + self.config['main']['uuid'] + '/scan') and
               (not self.config['main']['use_old_plex_interface'])):
             self.hdhr_station_scan = True
 
@@ -261,11 +257,10 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
                 if scan_status == 'Idle':
                     self.rmg_station_scans[index] = "Scan"
 
-            self.do_response(200, 
-                             'application/xml', 
+            self.do_response(200,
+                             'application/xml',
                              templates['xmlRmgScanStatus'])
 
-            
             # putting this here after the response on purpose
             stations.refresh_dma_stations_and_channels(self.config, self.local_locast, self.location)
 
@@ -280,9 +275,8 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
 
         return
 
-
     def do_DELETE(self):
-        base_url = self.config['main']['plex_accessible_ip'] + ':' + self.config['main']['plex_accessible_port']
+        # base_url = self.config['main']['plex_accessible_ip'] + ':' + self.config['main']['plex_accessible_port']
 
         contentPath = self.path
         queryData = {}
@@ -306,14 +300,13 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
                 if len(getdataItemSplit) > 1:
                     queryData[getdataItemSplit[0]] = getdataItemSplit[1]
 
-        if ((contentPath == '/devices/' + self.config['main']['uuid'] + '/scan') and 
-            (not self.config['main']['use_old_plex_interface'])):
+        if ((contentPath == '/devices/' + self.config['main']['uuid'] + '/scan') and
+           (not self.config['main']['use_old_plex_interface'])):
             self.hdhr_station_scan = False
 
             for index, scan_status in enumerate(self.rmg_station_scans):
                 if scan_status == 'Scan':
                     self.rmg_station_scans[index] = "Idle"
-
 
     def do_tuning(self, sid):
         channelUri = self.local_locast.get_station_stream_uri(sid)
@@ -335,13 +328,13 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
             self.end_headers()
 
             ffmpeg_command = [self.config['main']['ffmpeg_path'],
-                                "-i", channelUri,
-                                "-c:v", "copy",
-                                "-c:a", "copy",
-                                "-f", "mpegts",
-                                "-nostats", "-hide_banner",
-                                "-loglevel", "warning",
-                                "pipe:1"]
+                              "-i", channelUri,
+                              "-c:v", "copy",
+                              "-c:a", "copy",
+                              "-f", "mpegts",
+                              "-nostats", "-hide_banner",
+                              "-loglevel", "warning",
+                              "pipe:1"]
 
             ffmpeg_proc = subprocess.Popen(ffmpeg_command, stdout=subprocess.PIPE)
 
@@ -365,7 +358,6 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
 
                 videoData = ffmpeg_proc.stdout.read(int(self.config['main']['bytes_per_read']))
 
-
             # Send SIGTERM to shutdown ffmpeg
             ffmpeg_proc.terminate()
             try:
@@ -384,7 +376,6 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
             reply_str = templates['htmlError'].format('All tuners already in use.')
             self.wfile.write(reply_str.encode('utf-8'))
 
-
     def do_response(self, code, mime, reply_str):
         self.send_response(code)
         self.send_header('Content-type', mime)
@@ -392,7 +383,6 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
 
         if reply_str:
             self.wfile.write(reply_str.encode('utf-8'))
-
 
 
 # mostly from https://github.com/ZeWaren/python-upnp-ssdp-example
@@ -411,12 +401,12 @@ class PlexHttpServer(threading.Thread):
         PlexHttpHandler.local_locast = locast_service
         PlexHttpHandler.location = location
 
-        # init station scans 
+        # init station scans
         tmp_rmg_scans = []
 
         for x in range(int(config['main']['tuner_count'])):
             tmp_rmg_scans.append('Idle')
-        
+
         PlexHttpHandler.rmg_station_scans = tmp_rmg_scans
 
         self.socket = serverSocket

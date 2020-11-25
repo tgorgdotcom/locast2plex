@@ -4,11 +4,9 @@ import sys
 import urllib.error
 import urllib.parse
 import urllib.request
-import pathlib
 from datetime import datetime
 
 import lib.m3u8 as m3u8
-import lib.stations as stations
 from lib.l2p_tools import handle_url_except
 
 
@@ -106,9 +104,9 @@ class LocastService:
             # https://api.locastnet.org/api/watch/epg/504
             # get stations
             stationsReq = urllib.request.Request('https://api.locastnet.org/api/watch/epg/' + str(self.location["DMA"]),
-                                                    headers={'Content-Type': 'application/json',
-                                                            'authorization': 'Bearer ' + self.current_token,
-                                                            'User-agent': self.DEFAULT_USER_AGENT})
+                                                 headers={'Content-Type': 'application/json',
+                                                          'authorization': 'Bearer ' + self.current_token,
+                                                          'User-agent': self.DEFAULT_USER_AGENT})
 
             stationsOpn = urllib.request.urlopen(stationsReq)
             stationsRes = json.load(stationsOpn)

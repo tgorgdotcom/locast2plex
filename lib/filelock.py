@@ -73,6 +73,8 @@ __version__ = "3.0.12"
 
 
 _logger = None
+
+
 def logger():
     """Returns the logger instance used in this module."""
     global _logger
@@ -131,7 +133,7 @@ class BaseFileLock(object):
     Implements the base class of a file lock.
     """
 
-    def __init__(self, lock_file, timeout = -1):
+    def __init__(self, lock_file, timeout=-1):
         """
         """
         # The path to the lock file.
@@ -282,15 +284,16 @@ class BaseFileLock(object):
                         lock_id, lock_filename, poll_intervall
                     )
                     time.sleep(poll_intervall)
-        except:
+        except Exception as e:
+            print(e)
             # Something did go wrong, so decrement the counter.
             with self._thread_lock:
                 self._lock_counter = max(0, self._lock_counter - 1)
 
             raise
-        return _Acquire_ReturnProxy(lock = self)
+        return _Acquire_ReturnProxy(lock=self)
 
-    def release(self, force = False):
+    def release(self, force=False):
         """
         Releases the file lock.
 
@@ -328,7 +331,7 @@ class BaseFileLock(object):
         return None
 
     def __del__(self):
-        self.release(force = True)
+        self.release(force=True)
         return None
 
 
@@ -374,6 +377,7 @@ class WindowsFileLock(BaseFileLock):
 # Unix locking mechanism
 # ~~~~~~~~~~~~~~~~~~~~~~
 
+
 class UnixFileLock(BaseFileLock):
     """
     Uses the :func:`fcntl.flock` to hard lock the lock file on unix systems.
@@ -404,6 +408,7 @@ class UnixFileLock(BaseFileLock):
 
 # Soft lock
 # ~~~~~~~~~
+
 
 class SoftFileLock(BaseFileLock):
     """

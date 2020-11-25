@@ -7,9 +7,8 @@ import json
 import pathlib
 
 from lib.l2p_tools import clean_exit
-from lib.filelock import Timeout, FileLock
+from lib.filelock import FileLock
 from lib.dma_markets import get_dma_info
-
 
 
 def stations_process(config, locast, location):
@@ -52,7 +51,6 @@ def get_offline_file_time(facility_zip_dl_path):
     offline_file_time = datetime.datetime.utcfromtimestamp(os.path.getmtime(facility_zip_dl_path))
     offline_file_time = offline_file_time.replace(tzinfo=datetime.timezone.utc)
     return offline_file_time
-
 
 
 def fcc_db_format(fac_line):
@@ -156,10 +154,10 @@ def get_fcc_stations(config):
             os.remove(facility_zip_dl_path)
         if os.path.exists(fcc_unzipped_dat):
             os.remove(fcc_unzipped_dat)
- 
+
         if (not os.path.exists(facility_zip_dl_path)):
             urllib.request.urlretrieve(facility_url, facility_zip_dl_path)
-        
+
         if (not os.path.exists(fcc_unzipped_dat)) and (os.path.exists(facility_zip_dl_path)):
             print('Unzipping FCC facilities database...')
 
@@ -168,7 +166,7 @@ def get_fcc_stations(config):
 
         # make sure the fcc data is not corrupted (if the file isn't as big as we expect)
         if (os.path.exists(fcc_unzipped_dat) and os.path.getsize(fcc_unzipped_dat) > 7000000):
-            
+
             print('Reading and formatting FCC database...')
 
             with open(fcc_unzipped_dat, "r") as fac_file:
@@ -203,9 +201,8 @@ def get_fcc_stations(config):
         with json_file_lock:
             with open(fcc_cached_file, "r") as fcc_station_file_obj:
                 fcc_stations = json.load(fcc_station_file_obj)
-                
-        return fcc_stations["fcc_station_list"]
 
+        return fcc_stations["fcc_station_list"]
 
 
 def generate_dma_stations_and_channels_file(config, locast, location, fcc_stations):
@@ -217,18 +214,18 @@ def generate_dma_stations_and_channels_file(config, locast, location, fcc_statio
     fcc_market = get_dma_info(str(location["DMA"]))
     if not len(fcc_market):
         print("No DMA to FCC mapping found.  Poke the developer to get it into locast2plex.")
- 
+
     noneChannel = 1000
 
     for index, locast_station in enumerate(station_list):
 
         sid = locast_station['id']
 
-        final_channel_list[sid] = { 'callSign': locast_station['name'] }
-        
+        final_channel_list[sid] = {'callSign': locast_station['name']}
+
         if 'logo226Url' in locast_station.keys():
             final_channel_list[sid]['logoUrl'] = locast_station['logo226Url']
-            
+
         elif 'logoUrl' in locast_station.keys():
             final_channel_list[sid]['logoUrl'] = locast_station['logoUrl']
 
@@ -258,7 +255,6 @@ def generate_dma_stations_and_channels_file(config, locast, location, fcc_statio
             # example: WABCDT2
             alt_callsign_result = detect_callsign(locast_station['name'])
 
-
             # check the known station json that we maintain whenever locast's
             # reported station is iffy
             with open("known_stations.json", "r") as known_stations_file_obj:
@@ -270,14 +266,12 @@ def generate_dma_stations_and_channels_file(config, locast, location, fcc_statio
                 final_channel_list[sid]['channel'] = ks_result['channel']
                 skip_sub_id = ks_result['skip_sub']
 
-
             # then check "name"
             if ('channel' not in final_channel_list[sid]):
                 ks_result = find_known_station(locast_station, 'name', known_stations)
                 if ks_result is not None:
                     final_channel_list[sid]['channel'] = ks_result['channel']
                     skip_sub_id = ks_result['skip_sub']
-
 
             # if we couldn't find anything look through fcc list for a match.
             # first by searching the callsign found in the "callsign" field
@@ -289,7 +283,6 @@ def generate_dma_stations_and_channels_file(config, locast, location, fcc_statio
                         skip_sub_id = result['analog']
                         break
 
-
             # if we still couldn't find it, see if there's a match via the
             # "name" field
             if ('channel' not in final_channel_list[sid]) and alt_callsign_result['verified']:
@@ -300,7 +293,6 @@ def generate_dma_stations_and_channels_file(config, locast, location, fcc_statio
                         skip_sub_id = result['analog']
                         break
 
-
             # locast usually adds a number in it's callsign (in either field).  that
             # number is the subchannel
             if (not skip_sub_id) and ('channel' in final_channel_list[sid]):
@@ -310,7 +302,6 @@ def generate_dma_stations_and_channels_file(config, locast, location, fcc_statio
                     final_channel_list[sid]['channel'] = final_channel_list[sid]['channel'] + '.' + alt_callsign_result['subchannel']
                 else:
                     final_channel_list[sid]['channel'] = final_channel_list[sid]['channel'] + '.1'
-
 
             # mark stations that did not get a channel, but outside of the normal range.
             # the user will have to weed these out in Plex...
@@ -324,10 +315,9 @@ def generate_dma_stations_and_channels_file(config, locast, location, fcc_statio
     dma_channels_list_file = pathlib.Path(config["main"]["cache_dir"]).joinpath("stations").joinpath(dma_channels_list_path)
     dma_channels_list_file_lock = FileLock(str(dma_channels_list_file) + ".lock")
 
-    with dma_channels_list_file_lock: 
+    with dma_channels_list_file_lock:
         with open(dma_channels_list_file, "w") as dma_stations_file:
             json.dump(final_channel_list, dma_stations_file, indent=4)
-
 
 
 def get_dma_stations_and_channels(config, location):
@@ -336,12 +326,11 @@ def get_dma_stations_and_channels(config, location):
     dma_channels_list_file = pathlib.Path(config["main"]["cache_dir"]).joinpath("stations").joinpath(dma_channels_list_path)
     dma_channels_list_file_lock = FileLock(str(dma_channels_list_file) + ".lock")
 
-    with dma_channels_list_file_lock: 
+    with dma_channels_list_file_lock:
         with open(dma_channels_list_file, "r") as dma_stations_file:
             dma_channels = json.load(dma_stations_file)
 
     return dma_channels
-
 
 
 def detect_callsign(compare_string):
@@ -366,8 +355,8 @@ def detect_callsign(compare_string):
 
     # verify if text from "callsign" is an actual callsign
     if (((compare_string[0] == 'K')
-        or (compare_string[0] == 'W')) and ((len(compare_string) == 3)
-        or (len(compare_string) == 4))):
+       or (compare_string[0] == 'W')) and ((len(compare_string) == 3)
+       or (len(compare_string) == 4))):
         verified = True
 
     return {
@@ -378,14 +367,11 @@ def detect_callsign(compare_string):
     }
 
 
-
-
-
 def find_known_station(station, searchBy, known_stations):
 
     for known_station in known_stations:
         if ((known_station[searchBy] == station[searchBy])
-            and (known_station['dma'] == station['dma'])):
+           and (known_station['dma'] == station['dma'])):
 
             returnChannel = known_station['rootChannel']
 
@@ -407,9 +393,6 @@ def find_known_station(station, searchBy, known_stations):
             }
 
     return None
-
-
-
 
 
 def find_fcc_station(callsign, market, fcc_stations):
@@ -434,9 +417,8 @@ def find_fcc_station(callsign, market, fcc_stations):
 
     return None
 
- 
 
-# from http://docs.python.org/library/datetime.html 
+# from http://docs.python.org/library/datetime.html
 # via https://stackoverflow.com/questions/11710469/how-to-get-python-to-display-current-time-eastern
 class EST5EDT(datetime.tzinfo):
 
@@ -444,9 +426,9 @@ class EST5EDT(datetime.tzinfo):
         return datetime.timedelta(hours=-5) + self.dst(dt)
 
     def dst(self, dt):
-        d = datetime.datetime(dt.year, 3, 8)        #2nd Sunday in March
+        d = datetime.datetime(dt.year, 3, 8)  # 2nd Sunday in March
         self.dston = d + datetime.timedelta(days=6-d.weekday())
-        d = datetime.datetime(dt.year, 11, 1)       #1st Sunday in Nov
+        d = datetime.datetime(dt.year, 11, 1)  # 1st Sunday in Nov
         self.dstoff = d + datetime.timedelta(days=6-d.weekday())
         if self.dston <= dt.replace(tzinfo=None) < self.dstoff:
             return datetime.timedelta(hours=1)

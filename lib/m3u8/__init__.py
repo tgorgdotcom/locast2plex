@@ -3,17 +3,16 @@
 # Use of this source code is governed by a MIT License
 # license that can be found in the LICENSE file.
 
-import sys
 import ssl
 import os
 import posixpath
 import urllib
 
 from lib.m3u8.model import (M3U8, Segment, SegmentList, PartialSegment,
-                        PartialSegmentList, Key, Playlist, IFramePlaylist,
-                        Media, MediaList, PlaylistList, Start,
-                        RenditionReport, RenditionReportList, ServerControl,
-                        Skip, PartInformation)
+                            PartialSegmentList, Key, Playlist, IFramePlaylist,
+                            Media, MediaList, PlaylistList, Start,
+                            RenditionReport, RenditionReportList, ServerControl,
+                            Skip, PartInformation)
 from lib.m3u8.parser import parse, is_url, ParseError
 
 __all__ = ('M3U8', 'Segment', 'SegmentList', 'PartialSegment',

@@ -214,7 +214,7 @@ major_cities = [
     {'fcc_dma_str': 'BIRMINGHAM', 'city': 'Binghamton', 'dma_code': 502, 'latitude': 42.098686700000002, 'longitude': -75.917973799999999, 'region': 'NY', 'slug': 'binghamton-ny'},
     {'fcc_dma_str': 'GREENVLL-SPART-ASHEVLL-AND', 'city': 'Anderson', 'dma_code': 567, 'latitude': 34.503439399999998, 'longitude': -82.650133199999999, 'region': 'SC', 'slug': 'anderson-sc'},
     {'fcc_dma_str': 'GUAM', 'city': 'Guam', 'dma_code': 596, 'latitude': 39.940345299999997, 'longitude': -82.013192399999994, 'region': 'OH', 'slug': 'zanesville-oh'},
-    {'fcc_dma_str': 'ION', 'city': 'Akron', 'dma_code': 510, 'latitude': 41.081444699999999, 'longitude': -81.519005300000003, 'region': 'OH', 'slug': 'akron-oh'}, # due to bad data putting channel affiliation in dma
+    {'fcc_dma_str': 'ION', 'city': 'Akron', 'dma_code': 510, 'latitude': 41.081444699999999, 'longitude': -81.519005300000003, 'region': 'OH', 'slug': 'akron-oh'},  # due to bad data putting channel affiliation in dma
     {'fcc_dma_str': 'PUERTO RICO', 'city': 'Puerto Rico', 'dma_code': 490, 'latitude': 36.152852, 'longitude': -96.5573665, 'region': 'PR', 'slug': 'puerto-rico'},
     {'fcc_dma_str': 'VIRGIN ISLANDS', 'city': 'Virgin Islands', 'dma_code': 491, 'latitude': 18.0659719, 'longitude': -65.2991776, 'region': 'VI', 'slug': 'virgin-islands'},
     {'fcc_dma_str': 'GUAM', 'city': 'Guam', 'dma_code': 495, 'latitude': 13.4506574, 'longitude': 144.5086191, 'region': 'GU', 'slug': 'guam'}

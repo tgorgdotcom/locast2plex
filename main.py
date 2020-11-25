@@ -2,7 +2,7 @@
 import os
 import sys
 import time
-import platform 
+import platform
 import argparse
 import pathlib
 from multiprocessing import Process
@@ -11,7 +11,7 @@ import lib.locast_service as locast_service
 import lib.ssdp_server as ssdp_server
 import lib.tuner_interface as tuner_interface
 import lib.epg2xml as epg2xml
-import lib.stations as stations 
+import lib.stations as stations
 import lib.location as location
 from lib.user_config import get_config
 from lib.l2p_tools import clean_exit, get_version_str
