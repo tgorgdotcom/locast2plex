@@ -1,9 +1,11 @@
-FROM jrottenberg/ffmpeg:4.0-alpine
+FROM python:3.8-alpine
 LABEL maintainer="Thomas Gorgolione <thomas@tgorg.com>"
 
-RUN apk add --no-cache --update python3
-COPY data /app/data
+RUN apk add --no-cache --update ffmpeg
 COPY *.py /app/
-COPY m3u8/ /app/m3u8/
+COPY cache/ /app/cache/
+COPY lib/ /app/lib/
+COPY known_stations.json /app/
+RUN touch /app/is_container
 
-ENTRYPOINT ["python3", "/app/main.py", "2>&1"]
+ENTRYPOINT ["python3", "/app/main.py"]

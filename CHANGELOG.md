@@ -1,7 +1,40 @@
 # CHANGELOG
 
+## FUTURE (may or may not be implemented):
+ - Reorganize config.ini file
+ - Start using pip for third-party plugins
+ - Rename `plex_accessible_ip`/`plex_accessible_port` to `advertise_ip`/`advertise_port`. Add `bind_ip`/`bind_port` options (https://github.com/tgorgdotcom/locast2plex/pull/98)
+ - Hopefully phase out FCC channel checking (when locast reports proper channel numbers)
+ - Some kind of web based UI to modify config
+ - A way to daemonize the script for those running outside of docker
+ - Install script for those not using docker
+ - Now a multiplatform Docker image
+ - Implement proper logging
+
+## 1.0.0 (unreleased)
+ - Most bugs squashed
+
+## 0.6.1 (unreleased)
+ - Documentation added for Kodi, Emby/Jellyfin
+ - Create dev branch, add contributing docs to mention dev branch
+ - rename master branch to main branch
+ - Look into pull requests suggestions for ip addressing
+
 ## 0.6.0
+ - Reorganized codebase for better modularity (@deathbybandaid)
+ - Included all DMA codes so we don't have to update whenever locast rolls out to a new market (@deathbybandaid)
+ - Added automatic pulling from FCC database (@deathbybandaid)
+ - Added m3u/xmltv playlist endpoint (for Emby, Kodi etc.) (with help from @deathbybandaid)
+ - Fixes to resolve legal complaints and...
+ - ...uses a new way to connect to Plex
+ - Some fixes for SSDP, may start working for applicable systems
+ - Added ability to disable SSDP using config.ini
+ - Fixes issue with query string in GET requests to the tuner
+ - Made sure all errors return nonzero
+
+## 0.5.3-hotfix
  - Switch to Python 3 (Thanks @ratherDashing! & @deathbybandaid)
+ - Fix to resolve Locast auth issues
 
 ## 0.5.3
  - Scripts are now fully linted (Thanks @deathbybandaid!)

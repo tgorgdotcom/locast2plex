@@ -10,7 +10,14 @@ their service area.  We will aim to be a good steward of the Locast terms of ser
 For the most part we lint against PEP 8 and pyflakes, with exceptions
 for rules E303, E501, W504, W605.  I will be pretty lenient in taking pull requests, 
 so don't worry if you're not already familiar with linting.  A good primer
-on [linting in Python is here](https://realpython.com/python-code-quality/)
+on [linting in Python is here](https://realpython.com/python-code-quality/)'
+
+Aligning with the PEP 8, we use the following naming formats:
+ - Classnames: CapWords
+ - Methods/Properties: snake_case
+ - File names/Package names: snake_case
+ - Function/Variable Names: snake_case
+
 
 ## Versioning Scheme
 We use the Semantic versioning scheme, with the following naming conventions for non-stable 

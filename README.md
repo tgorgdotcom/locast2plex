@@ -1,8 +1,10 @@
-> **IMPORTANT FOR USERS UPGRADING TO 0.3.x OR 0.5.x**: With the architectural changes made in these versions, a few config and set up tasks have changed.  Please re-review the installation instructions for details.
+> **IMPORTANT FOR USERS UPGRADING TO 0.3.x, 0.5.x, or 0.6.x**: 
+- With the architectural changes made to 0.3.x or 0.5.x, a few config and set up tasks have changed.  Please re-review the installation instructions for details.
+- When upgrading to 0.6.x, we are now using Python 3.  If you are not using Docker, please upgrade your system to Python 3.6 or newer
 
 
 # locast2plex
-A Python script and Docker image to connect locast to Plex's live tv/dvr feature.  Seems to work for Emby and Jellyfin too!
+A Python script and Docker image to connect locast to Plex's live tv/dvr feature.  Seems to work for Emby, Jellyfin, and Kodi too!
 
 Uses ffmpeg, python, and a few awesome python modules to do most of the heavy lifting.  A lot of code was inspired from [telly](https://github.com/tellytv/telly) as well.
 
@@ -35,15 +37,11 @@ As of 0.3, are now two ways to use locast2plex -- either via a Docker container,
 
 - If you choose to run this as a command line program, the following OSs and programs are required:
     - Windows (Mac and Linux probably work too, but this is untested)
-    - Python 3.x
+    - Python 3.6.x or above
     - ffmpeg (if running under Mac or Linux).  Mac users can usually install this via homebrew, and Linux through their distribution's respective package manager
 
 
 - A locast account that you have donated to (non donated accounts have streams that terminate after 5-10 mins, so locast2plex intentionally fails to prevent issues with non donating users and the DVR function).  Also be sure you are running the server from the same physical location that you want channels for.
-
-
-## Some caveats
-- As of now, EPG is provided solely through Plex.  Perhaps we can investigate getting EPG data through locast later, as the API supports it.
 
 
 ## Installation
@@ -155,5 +153,5 @@ When submitting an issue, make sure to take note of the docker or command line o
 ## Credits
 #### A big THANK YOU to all who have co-developed locast2plex, and/or are answering issues in GitHub (sorry if I missed anyone!):
 ```
-@CTJohnK, @diana1055, @FozzieBear, @jcastilloalonso, @dcd, @steventwheeler, @precision, @deathbybandaid, @mneumark, @ratherDashing, @tharris9d, @tri-ler, @teconmoon, @dwkane, @RedGreen007, @gogorichie, @teconmoon
+@CTJohnK, @diana1055, @FozzieBear, @jcastilloalonso, @dcd, @steventwheeler, @precision, @deathbybandaid, @mneumark, @ratherDashing, @tharris9d, @tri-ler, @teconmoon, @dwkane, @RedGreen007, @gogorichie, @teconmoon, @Above2, @paradxum, @rottdog32, @numchucksoe, @begunfx, @yaroz, @JimSpeedo, @toadman50, @c0deweaver, @libersongm, @dnixon1981, @patrick-GH, @Oumpa31, @seantdavidson, @scumola, @BH000, @paradxum
 ```
