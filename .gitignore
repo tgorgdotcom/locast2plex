@@ -13,3 +13,8 @@ SECRETS.txt
 service_uuid
 TODO.md
 *.pyc
+config_future.ini
+dev/
+cache/*_epg
+cache/stations/*_stations.json
+cache/*_epg.xml
