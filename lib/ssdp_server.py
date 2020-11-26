@@ -27,6 +27,7 @@ SERVER_ID = 'locast2plex'
 # mostly from https://github.com/ZeWaren/python-upnp-ssdp-example
 def ssdp_process(config):
     ssdp = SSDPServer()
+    ssdp.config = config
     ssdp.register('local',
                   'uuid:' + config["main"]["uuid"] + '::upnp:rootdevice',
                   'upnp:rootdevice',
@@ -41,6 +42,7 @@ class SSDPServer:
     searchReceived methods are called when the appropriate type of
     datagram is received by the server."""
     known = {}
+    config = None
 
     def __init__(self):
         self.sock = None
@@ -100,16 +102,19 @@ class SSDPServer:
         headers = [x.split(':', 1) for x in lines]
         headers = dict([(x[0].lower(), x[1]) for x in headers])
 
-        print('SSDP command %s %s - from %s:%d' % (cmd[0], cmd[1], host, port))
+        if self.config['main']['verbose']:
+            print('SSDP command %s %s - from %s:%d' % (cmd[0], cmd[1], host, port))
         #print('with headers: {}.'.format(headers))
         if cmd[0] == 'M-SEARCH' and cmd[1] == '*':
             # SSDP discovery
             self.discovery_request(headers, (host, port))
         elif cmd[0] == 'NOTIFY' and cmd[1] == '*':
             # SSDP presence
-            print('NOTIFY *')
+            if self.config['main']['verbose']:
+                print('NOTIFY *')
         else:
-            print('Unknown SSDP command %s %s' % (cmd[0], cmd[1]))
+            if self.config['main']['verbose']:
+                print('Unknown SSDP command %s %s' % (cmd[0], cmd[1]))
 
     def register(self, manifestation, usn, st, location, server=SERVER_ID, cache_control='max-age=1800', silent=False,
                  host=None):
@@ -142,7 +147,8 @@ class SSDPServer:
         return usn in self.known
 
     def send_it(self, response, destination, delay, usn):
-        print('send discovery response delayed by %ds for %s to %r' % (delay, usn, destination))
+        if self.config['main']['verbose']:
+            print('send discovery response delayed by %ds for %s to %r' % (delay, usn, destination))
         try:
             self.sock.sendto(response.encode(), destination)
         except (AttributeError, socket.error) as msg:
@@ -154,7 +160,8 @@ class SSDPServer:
 
         (host, port) = host_port
 
-        print('Discovery request from (%s,%d) for %s' % (host, port, headers['st']))
+        if self.config['main']['verbose']:
+            print('Discovery request from (%s,%d) for %s' % (host, port, headers['st']))
 
         # Do we know about this service?
         for i in list(self.known.values()):
@@ -185,7 +192,9 @@ class SSDPServer:
 
         if self.known[usn]['SILENT']:
             return
-        print('Sending alive notification for %s' % usn)
+        
+        if self.config['main']['verbose']:
+            print('Sending alive notification for %s' % usn)
 
         resp = [
             'NOTIFY * HTTP/1.1',
@@ -202,12 +211,16 @@ class SSDPServer:
 
         resp.extend([': '.join(x) for x in list(stcpy.items())])
         resp.extend(('', ''))
-        print('do_notify content', resp)
+
+        if self.config['main']['verbose']:
+            print('do_notify content', resp)
+
         try:
             self.sock.sendto('\r\n'.join(resp).encode(), (SSDP_ADDR, SSDP_PORT))
             self.sock.sendto('\r\n'.join(resp).encode(), (SSDP_ADDR, SSDP_PORT))
         except (AttributeError, socket.error) as msg:
-            print("failure sending out alive notification: %r" % msg)
+            if self.config['main']['verbose']:
+                print("failure sending out alive notification: %r" % msg)
 
     def do_byebye(self, usn):
         """Do byebye"""

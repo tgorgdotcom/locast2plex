@@ -10,15 +10,21 @@
  - Install script for those not using docker
  - Now a multiplatform Docker image
  - Implement proper logging
+ - Wrap HTTP requests around error handling that existed in do_tuner() previously
+ - Documentation added for Kodi, Emby/Jellyfin
 
 ## 1.0.0 (unreleased)
  - Most bugs squashed
 
+## 0.6.2 (unreleased)
+ - Look into pull requests suggestions for ip addressing
+
 ## 0.6.1 (unreleased)
- - Documentation added for Kodi, Emby/Jellyfin
  - Create dev branch, add contributing docs to mention dev branch
  - rename master branch to main branch
- - Look into pull requests suggestions for ip addressing
+ - moved most SSDP messages to show when new config option `verbose` is set to true
+ - potential fix for error in getting fcc database
+ - fixed a bug in deleting stale cache EPG data
 
 ## 0.6.0
  - Reorganized codebase for better modularity (@deathbybandaid)

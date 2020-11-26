@@ -35,4 +35,4 @@ def handle_url_except(f):
 
 
 def get_version_str():
-    return '0.6.0'
+    return '0.6.1'

@@ -42,6 +42,7 @@ class UserConfig():
             'reporting_firmware_ver': 'v' + get_version_str(),
             'tuner_type': "Antenna",
             'fcc_delay': 1296000,  # 15 days
+            'verbose': False
         }
     }
 

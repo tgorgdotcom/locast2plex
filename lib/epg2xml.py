@@ -230,9 +230,8 @@ def get_cached(cache_dir, cache_key, url):
 def remove_stale_cache(cache_dir, todaydate):
     for p in cache_dir.glob('*'):
         try:
-            cachedate = datetime.datetime.strptime(str(p.name), "%Y-%m-%d")
-            todaysdate = datetime.datetime.strptime(str(todaydate), "%Y-%m-%d")
-            if cachedate >= todaysdate:
+            cachedate = datetime.datetime.strptime(str(p.name).replace('.json', ''), "%m-%d-%Y")
+            if cachedate >= todaydate:
                 continue
         except:
             pass
