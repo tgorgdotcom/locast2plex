@@ -13,7 +13,7 @@ def get_config(script_dir, opersystem, args):
 class UserConfig():
 
     config_file = None
-    config_handler = configparser.ConfigParser()
+    config_handler = configparser.ConfigParser(interpolation=None)
     script_dir = None
 
     data = {

@@ -8,18 +8,19 @@
  - Some kind of web based UI to modify config
  - A way to daemonize the script for those running outside of docker
  - Install script for those not using docker
- - Now a multiplatform Docker image
+ - Enable multiplatform Docker image
  - Implement proper logging
  - Wrap HTTP requests around error handling that existed in do_tuner() previously
  - Documentation added for Kodi, Emby/Jellyfin
+ - Look into pull requests suggestions for ip addressing
 
 ## 1.0.0 (unreleased)
  - Most bugs squashed
 
-## 0.6.2 (unreleased)
- - Look into pull requests suggestions for ip addressing
+## 0.6.2
+ - Fix an issue where logins fail when passwords with a '%' are used
 
-## 0.6.1 (unreleased)
+## 0.6.1
  - Create dev branch, add contributing docs to mention dev branch
  - rename master branch to main branch
  - moved most SSDP messages to show when new config option `verbose` is set to true
