@@ -27,6 +27,7 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
         
 
     def do_GET(self):
+
         base_url = self.config['main']['plex_accessible_ip'] + ':' + self.config['main']['plex_accessible_port']
 
         contentPath = self.path

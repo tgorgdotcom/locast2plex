@@ -5,17 +5,20 @@
  - Start using pip for third-party plugins
  - Rename `plex_accessible_ip`/`plex_accessible_port` to `advertise_ip`/`advertise_port`. Add `bind_ip`/`bind_port` options (https://github.com/tgorgdotcom/locast2plex/pull/98)
  - Hopefully phase out FCC channel checking (when locast reports proper channel numbers)
- - Some kind of web based UI to modify config
- - A way to daemonize the script for those running outside of docker
  - Install script for those not using docker
  - Enable multiplatform Docker image
- - Implement proper logging
  - Wrap HTTP requests around error handling that existed in do_tuner() previously
  - Documentation added for Kodi, Emby/Jellyfin
+ - Implement proper logging
+ - Some kind of web based UI to modify config
  - Look into pull requests suggestions for ip addressing
+ - A way to daemonize the script for those running outside of docker
 
 ## 1.0.0 (unreleased)
  - Most bugs squashed
+
+## 0.6.3
+ - Add error handling for when a channel in the EPG exists that does not exist in the channel list
 
 ## 0.6.2
  - Fix an issue where logins fail when passwords with a '%' are used

@@ -93,6 +93,32 @@ def generate_epg_file(config, location):
             done_channels = True
             for channel_item in channel_info:
                 sid = str(channel_item['id'])
+                if sid in dma_channels.keys():
+                    channel_number = str(dma_channels[sid]['channel'])
+                    channel_realname = str(dma_channels[sid]['friendlyName'])
+                    channel_callsign = str(dma_channels[sid]['callSign'])
+
+                    if 'logo226Url' in channel_item.keys():
+                        channel_logo = channel_item['logo226Url']
+                        
+                    elif 'logoUrl' in channel_item.keys():
+                        channel_logo = channel_item['logoUrl']
+
+                    c_out = sub_el(out, 'channel', id=sid)
+                    sub_el(c_out, 'display-name', text='%s %s' % (channel_number, channel_callsign))
+                    sub_el(c_out, 'display-name', text='%s %s %s' % (channel_number, channel_callsign, sid))
+                    sub_el(c_out, 'display-name', text=channel_number)
+                    sub_el(c_out, 'display-name', text='%s %s fcc' % (channel_number, channel_callsign))
+                    sub_el(c_out, 'display-name', text=channel_callsign)
+                    sub_el(c_out, 'display-name', text=channel_realname)
+
+                    if channel_logo != None:
+                        sub_el(c_out, 'icon', src=channel_logo)
+
+        # Now list Program informations
+        for channel_item in channel_info:
+            sid = str(channel_item['id'])
+            if sid in dma_channels.keys():
                 channel_number = str(dma_channels[sid]['channel'])
                 channel_realname = str(dma_channels[sid]['friendlyName'])
                 channel_callsign = str(dma_channels[sid]['callSign'])
@@ -103,84 +129,60 @@ def generate_epg_file(config, location):
                 elif 'logoUrl' in channel_item.keys():
                     channel_logo = channel_item['logoUrl']
 
-                c_out = sub_el(out, 'channel', id=sid)
-                sub_el(c_out, 'display-name', text='%s %s' % (channel_number, channel_callsign))
-                sub_el(c_out, 'display-name', text='%s %s %s' % (channel_number, channel_callsign, sid))
-                sub_el(c_out, 'display-name', text=channel_number)
-                sub_el(c_out, 'display-name', text='%s %s fcc' % (channel_number, channel_callsign))
-                sub_el(c_out, 'display-name', text=channel_callsign)
-                sub_el(c_out, 'display-name', text=channel_realname)
+                for event in channel_item['listings']:
 
-                if channel_logo != None:
-                    sub_el(c_out, 'icon', src=channel_logo)
+                    tm_start = tm_parse(event['startTime']) # this is returned from locast in UTC
+                    tm_duration = event['duration'] * 1000
+                    tm_end = tm_parse(event['startTime'] + tm_duration)
 
-        # Now list Program informations
-        for channel_item in channel_info:
-            sid = str(channel_item['id'])
-            channel_number = str(dma_channels[sid]['channel'])
-            channel_realname = str(dma_channels[sid]['friendlyName'])
-            channel_callsign = str(dma_channels[sid]['callSign'])
+                    event_genres = []
+                    if 'genres' in event.keys():
+                        event_genres = event['genres'].split(",")
 
-            if 'logo226Url' in channel_item.keys():
-                channel_logo = channel_item['logo226Url']
-                
-            elif 'logoUrl' in channel_item.keys():
-                channel_logo = channel_item['logoUrl']
+                    # note we're returning everything as UTC, as the clients handle converting to correct timezone
+                    prog_out = sub_el(out, 'programme', start=tm_start, stop=tm_end, channel=sid)
 
-            for event in channel_item['listings']:
+                    if event['title']:
+                        sub_el(prog_out, 'title', lang='en', text=event['title'])
 
-                tm_start = tm_parse(event['startTime']) # this is returned from locast in UTC
-                tm_duration = event['duration'] * 1000
-                tm_end = tm_parse(event['startTime'] + tm_duration)
+                    if 'movie' in event_genres and event['releaseYear']:
+                        sub_el(prog_out, 'sub-title', lang='en', text='Movie: ' + event['releaseYear'])
+                    elif 'episodeTitle' in event.keys():
+                        sub_el(prog_out, 'sub-title', lang='en', text=event['episodeTitle'])
 
-                event_genres = []
-                if 'genres' in event.keys():
-                    event_genres = event['genres'].split(",")
+                    if 'description' not in event.keys():
+                        event['description'] = "Unavailable"
+                    elif event['description'] is None:
+                        event['description'] = "Unavailable"
+                    sub_el(prog_out, 'desc', lang='en', text=event['description'])
 
-                # note we're returning everything as UTC, as the clients handle converting to correct timezone
-                prog_out = sub_el(out, 'programme', start=tm_start, stop=tm_end, channel=sid)
+                    sub_el(prog_out, 'length', units='minutes', text=str(event['duration']))
 
-                if event['title']:
-                    sub_el(prog_out, 'title', lang='en', text=event['title'])
+                    for f in event_genres:
+                        sub_el(prog_out, 'category', lang='en', text=f.strip())
+                        sub_el(prog_out, 'genre', lang='en', text=f.strip())
 
-                if 'movie' in event_genres and event['releaseYear']:
-                    sub_el(prog_out, 'sub-title', lang='en', text='Movie: ' + event['releaseYear'])
-                elif 'episodeTitle' in event.keys():
-                    sub_el(prog_out, 'sub-title', lang='en', text=event['episodeTitle'])
+                    if event["preferredImage"] is not None:
+                        sub_el(prog_out, 'icon', src=event["preferredImage"])
 
-                if 'description' not in event.keys():
-                    event['description'] = "Unavailable"
-                elif event['description'] is None:
-                    event['description'] = "Unavailable"
-                sub_el(prog_out, 'desc', lang='en', text=event['description'])
+                    if 'rating' not in event.keys():
+                        event['rating'] = "N/A"
+                    r = ET.SubElement(prog_out, 'rating')
+                    sub_el(r, 'value', text=event['rating'])
 
-                sub_el(prog_out, 'length', units='minutes', text=str(event['duration']))
+                    if 'seasonNumber' in event.keys() and 'episodeNumber' in event.keys():
+                        s_ = int(str(event['seasonNumber']), 10)
+                        e_ = int(str(event['episodeNumber']), 10)
+                        sub_el(prog_out, 'episode-num', system='common',
+                            text='S%02dE%02d' % (s_, e_))
+                        sub_el(prog_out, 'episode-num', system='xmltv_ns',
+                            text='%d.%d.0' % (int(s_)-1, int(e_)-1))
+                        sub_el(prog_out, 'episode-num', system='SxxExx',
+                            text='S%02dE%02d' % (s_, e_))
 
-                for f in event_genres:
-                    sub_el(prog_out, 'category', lang='en', text=f.strip())
-                    sub_el(prog_out, 'genre', lang='en', text=f.strip())
-
-                if event["preferredImage"] is not None:
-                    sub_el(prog_out, 'icon', src=event["preferredImage"])
-
-                if 'rating' not in event.keys():
-                    event['rating'] = "N/A"
-                r = ET.SubElement(prog_out, 'rating')
-                sub_el(r, 'value', text=event['rating'])
-
-                if 'seasonNumber' in event.keys() and 'episodeNumber' in event.keys():
-                    s_ = int(str(event['seasonNumber']), 10)
-                    e_ = int(str(event['episodeNumber']), 10)
-                    sub_el(prog_out, 'episode-num', system='common',
-                           text='S%02dE%02d' % (s_, e_))
-                    sub_el(prog_out, 'episode-num', system='xmltv_ns',
-                           text='%d.%d.0' % (int(s_)-1, int(e_)-1))
-                    sub_el(prog_out, 'episode-num', system='SxxExx',
-                           text='S%02dE%02d' % (s_, e_))
-
-                if 'isNew' in event.keys():
-                    if event['isNew']:
-                        sub_el(prog_out, 'new')
+                    if 'isNew' in event.keys():
+                        if event['isNew']:
+                            sub_el(prog_out, 'new')
 
     xml_lock = FileLock(out_lock_path)
     with xml_lock:
