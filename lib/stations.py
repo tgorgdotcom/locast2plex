@@ -127,7 +127,7 @@ def get_fcc_stations(config):
 
     fcc_cache_dir = pathlib.Path(config["main"]["cache_dir"]).joinpath("stations")
 
-    facility_url = 'http://transition.fcc.gov/ftp/Bureaus/MB/Databases/cdbs/facility.zip'
+    facility_url = 'https://transition.fcc.gov/ftp/Bureaus/MB/Databases/cdbs/facility.zip'
     facility_zip_dl_path = pathlib.Path(fcc_cache_dir).joinpath("facility.zip")
     fcc_unzipped_dat = pathlib.Path(fcc_cache_dir).joinpath("facility.dat")
     fcc_cached_file = pathlib.Path(fcc_cache_dir).joinpath("tv_facilities.json")
