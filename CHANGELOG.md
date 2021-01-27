@@ -20,6 +20,9 @@
 ## 1.0.0 (unreleased)
  - Most bugs squashed
 
+## 0.6.5
+ - Additional fixes to help correct FCC database download issues
+
 ## 0.6.4
  - Fix for getting the FCC stations (thanks @ThomasPBrauer)
  - Tweaks to instructions: Fixes to finding the IP, added some how tos to creating a service (thanks to warrenmelnick and tharris9d)
