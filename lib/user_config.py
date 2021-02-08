@@ -52,8 +52,29 @@ class UserConfig():
         self.import_config()
         self.config_adjustments(opersystem, script_dir)
 
+    def get_environment_config(self):
+        return {
+            **self.data['main'],
+            **{k: v for k, v in os.environ.items() if k in self.data['main']},
+        }
 
     def get_config_path(self, script_dir, args):
+
+        preferred_config_path = 'config/config.ini'
+
+        def config_no_change_to_template(config_dict, default_config: dict = None):
+            if default_config is None:
+                default_config = self.data['main']
+            return config_dict == default_config
+
+        def write_discovered_config(config_dict):
+            with open(preferred_config_path, 'w') as f:
+                f.writelines(['[main]\n'] + [
+                    '='.join([k, v]) + '\n'
+                    for k, v in config_dict.items()
+                    if v is not None
+                ])
+
         if args.cfg:
             self.config_file = pathlib.Path(str(args.cfg))
         else:
@@ -64,8 +85,14 @@ class UserConfig():
                     self.config_file = poss_config
                     break
         if not self.config_file or not os.path.exists(self.config_file):
-            print("Config file missing, Exiting...")
-            clean_exit(1)
+            print("Config file missing, Attempting to create it from scratch...")
+            environment_config = self.get_environment_config()
+            if config_no_change_to_template(environment_config):
+                print("Config file cannot be made, Exiting...")
+                clean_exit(1)
+            else:
+                write_discovered_config(environment_config)
+                self.config_file = pathlib.Path(script_dir).joinpath(preferred_config_path)
         print("Loading Configuration File: " + str(self.config_file))
 
 
