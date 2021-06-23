@@ -26,6 +26,7 @@ SyslogIdentifier=locast2plex
 ProtectSystem=true
 ProtectHome=true
 PrivateTmp=true
+Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
