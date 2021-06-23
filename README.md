@@ -117,10 +117,14 @@ As of 0.3, are now two ways to use locast2plex -- either via a Docker container,
     - **For Linux users running systemd** (thanks @warrenmelnick)
       
       The following must be performed as root (or with sudo):
-        1. Create the user locast2plex and the group locast2plex. This way the script does not have to run as root.
-        2. Move the file locast2plex.service into /etc/systemd/system/
-        3. In terminal, start it with this command: `systemctl start locast2plex`
-        4. To make it auto-run on boot (also in terminal): `systemctl enable locast2plex`
+        1. Create the user "locast2plex" and the group "locast2plex". This way the script does not have to run as root.
+            - `sudo groupadd locast2plex`
+            - `sudo useradd -g locast2plex -M -d /opt/locast2plex -s /bin/false locast2plex`
+        2. Copy the file locast2plex.service into /etc/systemd/system/
+        3. Load the new service file in systemd: `sudo systemctl daemon-reload`
+        4. In terminal, start it with this command: `sudo systemctl start locast2plex`
+        5. To make it auto-run on boot (also in terminal): `sudo systemctl enable locast2plex`
+        6. Tail the logs with `sudo journalctl -fu locast2plex`
 
     - **For Windows** (from @tharris9d)
       
