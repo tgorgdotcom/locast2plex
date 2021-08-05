@@ -7,6 +7,7 @@ import urllib
 import pathlib
 from io import StringIO
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from xml.sax import saxutils
 
 import lib.stations as stations
 import lib.epg2xml as epg2xml
@@ -169,7 +170,7 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
             for index, list_key in enumerate(station_list):
                 sid = str(list_key)
                 tmpXML = templates['xmlRmgDeviceChannelItem'].format(station_list[sid]['channel'],
-                                                                     station_list[sid]['friendlyName'])
+                                                                     saxutils.escape(station_list[sid]['friendlyName']))
 
                 channelXML = channelXML + tmpXML
 
