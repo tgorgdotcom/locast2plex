@@ -45,12 +45,7 @@ As of 0.3, are now two ways to use locast2plex -- either via a Docker container,
 
 
 ## Installation
-1. Take note of the IP address of the server or container that will 'host' the locast2plex service.  This could be a few things based on your configuration:
-    - The IP of the server running locast2plex (if Plex is running on a completely separate server),
-    - The loopback address (127.0.0.1), if you are running locast2plex on the same server as Plex, and Plex **is not** running in a Docker container, or
-    - If running both Plex and locast2plex in Docker containers on the same server, the IP configured in Docker to access the locast2plex container.  *How this would be set up is outside of the scope of this README, unfortunately*.
-
-   There might be additional edge cases here for particular server setups.  Check the [Troubleshooting Wiki Page](https://github.com/tgorgdotcom/locast2plex/wiki/Troubleshooting-and-Common-Issues) on GitHub for more help with your particular setup.
+1. Take note of the IP address of the server or container that will 'host' the locast2plex service.  This is usually the IP of the server running locast2plex, but there might be additional edge cases here for particular server setups.
 
    Note that the ports used are:
     - `6077` (tcp) for the hdhomerun device emulation service (and can be changed)
@@ -95,6 +90,8 @@ As of 0.3, are now two ways to use locast2plex -- either via a Docker container,
 
             `docker run -v <full path to config file>:/app/config/config.ini -p 12345:6077 -p 1900:1900/udp tgorg/locast2plex`
 
+            Also, if you want Docker to start locast2plex on reboot, add `--restart unless-stopped` to the command (thanks @SJLBoulder!)
+
 
     - **Via Terminal/Command Line**:
         - Download the latest locast2plex release files on GitHub and extract to a folder
@@ -116,6 +113,24 @@ As of 0.3, are now two ways to use locast2plex -- either via a Docker container,
 
     - Starting with 0.3, stations should have the correct channel and subchannel assignments now.  If there were any that were unrecognized, check the troubleshooting list below for assistance.
 
+6. Creating a service (Non Docker Users)
+    - **For Linux users running systemd** (thanks @warrenmelnick)
+      
+      The following must be performed as root (or with sudo):
+        1. Create the user "locast2plex" and the group "locast2plex". This way the script does not have to run as root.
+            - `sudo groupadd locast2plex`
+            - `sudo useradd -g locast2plex -M -d /opt/locast2plex -s /bin/false locast2plex`
+        2. Copy the file locast2plex.service into /etc/systemd/system/
+        3. Load the new service file in systemd: `sudo systemctl daemon-reload`
+        4. In terminal, start it with this command: `sudo systemctl start locast2plex`
+        5. To make it auto-run on boot (also in terminal): `sudo systemctl enable locast2plex`
+        6. Tail the logs with `sudo journalctl -fu locast2plex`
+
+    - **For Windows** (from @tharris9d)
+      
+      See https://github.com/tgorgdotcom/locast2plex/wiki/Setting-up-Locast2Plex-as-a-Windows-Service
+
+    - For Mac... TBA 
 
 
 ## Troubleshooting
@@ -153,5 +168,5 @@ When submitting an issue, make sure to take note of the docker or command line o
 ## Credits
 #### A big THANK YOU to all who have co-developed locast2plex, and/or are answering issues in GitHub (sorry if I missed anyone!):
 ```
-@CTJohnK, @diana1055, @FozzieBear, @jcastilloalonso, @dcd, @steventwheeler, @precision, @deathbybandaid, @mneumark, @ratherDashing, @tharris9d, @tri-ler, @teconmoon, @dwkane, @RedGreen007, @gogorichie, @teconmoon, @Above2, @paradxum, @rottdog32, @numchucksoe, @begunfx, @yaroz, @JimSpeedo, @toadman50, @c0deweaver, @libersongm, @dnixon1981, @patrick-GH, @Oumpa31, @seantdavidson, @scumola, @BH000, @paradxum
+@CTJohnK, @diana1055, @FozzieBear, @jcastilloalonso, @dcd, @steventwheeler, @precision, @deathbybandaid, @mneumark, @ratherDashing, @tharris9d, @tri-ler, @teconmoon, @dwkane, @RedGreen007, @gogorichie, @teconmoon, @Above2, @paradxum, @rottdog32, @numchucksoe, @begunfx, @yaroz, @JimSpeedo, @toadman50, @c0deweaver, @libersongm, @dnixon1981, @patrick-GH, @Oumpa31, @seantdavidson, @scumola, @BH000, @paradxum, @warrenmelnick, @SJLBoulder, @ThomasPBrauer
 ```

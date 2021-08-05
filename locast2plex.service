@@ -1,21 +1,32 @@
-# Systemctl file for locast2plex running on a CentOS 7 system
+# Systemctl file for locast2plex
+#
 # Assumes the application is living in /opt/locast2.plex and a user and group locast2plex
-# "yum install daemonize" if you do not have that package already installed
-# You also need to install python 3.6 from the SCLo packages
+#
+# Installation:
+#   - Copy to: /etc/systemd/system/locast2plex.service
+#   - sudo systemctl daemon-reload
+#   - sudo systemctl enable locast2plex
+#   - sudo systemctl start locast2plex
+#
+# To view logs: `journalctl -fu locast2plex`
+#
 # Written by Warren Melnick, warrenmelnick -at- gmail -dot- com, 2020-12-31
+
 [Unit]
 Description=locast2plex background service
 After=network.target
 
 [Service]
+Type=simple
+User=locast2plex
+Group=locast2plex
 WorkingDirectory=/opt/locast2plex
-ExecStartPre=/usr/bin/touch /var/log/locast2plex.log
-ExecStartPre=/usr/bin/chown locast2plex:locast2plex /var/log/locast2plex.log
-ExecStartPre=/usr/bin/mkdir -p /var/run/locast2plex
-ExecStartPre=/usr/bin/chown -R locast2plex:locast2plex /var/run/locast2plex
-ExecStart=/usr/sbin/daemonize -u locast2plex -c /opt/locast2plex -a -o /var/log/locast2plex.log -e /var/log/locast2plex.log -p /var/run/locast2plex/locast2plex.pid -l /var/run/locast2plex/locast2plex.lock /usr/bin/python3 main.py 
-ExecStop=/usr/bin/kill $(echo /var/run/locast2plex.pid)
-Type=forking
+ExecStart=/usr/bin/python3 main.py
+SyslogIdentifier=locast2plex
+ProtectSystem=true
+ProtectHome=true
+PrivateTmp=true
+Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target

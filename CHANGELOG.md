@@ -10,12 +10,22 @@
  - Wrap HTTP requests around error handling that existed in do_tuner() previously
  - Documentation added for Kodi, Emby/Jellyfin
  - Implement proper logging
+ - switch to host networking in docker *if it's ever supported outside of linux*
+ - Use third-party http request framework with proper session cookie support (@deathbybandaid)
  - Some kind of web based UI to modify config
  - Look into pull requests suggestions for ip addressing
  - A way to daemonize the script for those running outside of docker
+ - Future, future -- if we use ffmpeg for fancier things - look into enabling hw accel for video: https://hub.docker.com/r/linuxserver/plex
 
 ## 1.0.0 (unreleased)
  - Most bugs squashed
+
+## 0.6.5
+ - Additional fixes to help correct FCC database download issues
+
+## 0.6.4
+ - Fix for getting the FCC stations (thanks @ThomasPBrauer)
+ - Tweaks to instructions: Fixes to finding the IP, added some how tos to creating a service (thanks to warrenmelnick and tharris9d)
 
 ## 0.6.3
  - Add error handling for when a channel in the EPG exists that does not exist in the channel list

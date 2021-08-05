@@ -1,5 +1,6 @@
 import time
 import urllib
+import ssl
 import zipfile
 import os
 import datetime
@@ -10,7 +11,8 @@ from lib.l2p_tools import clean_exit
 from lib.filelock import Timeout, FileLock
 from lib.dma_markets import get_dma_info
 
-
+fcc_ssl_context = ssl.SSLContext()
+fcc_ssl_context.set_ciphers('HIGH:!DH:!aNULL')
 
 def stations_process(config, locast, location):
     try:
@@ -41,7 +43,7 @@ def refresh_dma_stations_and_channels(config, locast, location):
 
 def get_online_file_time(facility_url):
     url_head = urllib.request.Request(facility_url, method='HEAD')
-    resp = urllib.request.urlopen(url_head)
+    resp = urllib.request.urlopen(url_head, context=fcc_ssl_context)
     online_file_time = resp.headers['last-modified'].replace(" GMT", "")
     online_file_time = datetime.datetime.strptime(online_file_time, '%a, %d %b %Y %H:%M:%S')
     online_file_time = online_file_time.replace(tzinfo=EST5EDT()).astimezone(datetime.timezone.utc)
@@ -127,7 +129,7 @@ def get_fcc_stations(config):
 
     fcc_cache_dir = pathlib.Path(config["main"]["cache_dir"]).joinpath("stations")
 
-    facility_url = 'http://transition.fcc.gov/ftp/Bureaus/MB/Databases/cdbs/facility.zip'
+    facility_url = 'https://transition.fcc.gov/Bureaus/MB/Databases/cdbs/facility.zip'
     facility_zip_dl_path = pathlib.Path(fcc_cache_dir).joinpath("facility.zip")
     fcc_unzipped_dat = pathlib.Path(fcc_cache_dir).joinpath("facility.dat")
     fcc_cached_file = pathlib.Path(fcc_cache_dir).joinpath("tv_facilities.json")
@@ -158,7 +160,11 @@ def get_fcc_stations(config):
             os.remove(fcc_unzipped_dat)
  
         if (not os.path.exists(facility_zip_dl_path)):
-            urllib.request.urlretrieve(facility_url, facility_zip_dl_path)
+            with urllib.request.urlopen(facility_url, context=fcc_ssl_context) as fcc_facility_net:
+                fcc_facility_data = fcc_facility_net.read()
+            
+            with open(facility_zip_dl_path, 'wb') as fcc_facility_file:
+                fcc_facility_file.write(fcc_facility_data)
         
         if (not os.path.exists(fcc_unzipped_dat)) and (os.path.exists(facility_zip_dl_path)):
             print('Unzipping FCC facilities database...')
