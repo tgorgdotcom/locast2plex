@@ -52,8 +52,8 @@ class LocastService:
         # {"username":"thomas_vg1@hotmail.com","password":"xxxxxxxx"}
 
 
-        loginReq = urllib.request.Request('https://api.locastnet.org/api/user/login',
-                                          ('{"username":"' + username + '","password":"' + password + '"}').encode("utf-8"),
+        loginReq = urllib.request.Request('https://api.locastnet.org/api/user/login?client_id=CqhAMsBw%2BnxTXSJMLGqyOw%3D%3D',
+                                          ('{"username":"' + username + '","password":"' + password + '","captcha":"locast2plex"}').encode("utf-8"),
                                           {'Content-Type': 'application/json', 'User-agent': self.DEFAULT_USER_AGENT})
 
         loginOpn = urllib.request.urlopen(loginReq)
