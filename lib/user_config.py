@@ -34,6 +34,7 @@ class UserConfig():
             'override_zipcode': None,
             'mock_location': None,
             'ffmpeg_path': None, 
+            'ffmpeg_buffer': 3041280, # 3Mbits
             'use_old_plex_interface': False,
             'bytes_per_read': '1152000',
             'reporting_model': 'l2p',
@@ -104,6 +105,11 @@ class UserConfig():
         print("Server is set to run on  " +
               str(self.data["main"]["plex_accessible_ip"]) + ":" +
               str(self.data["main"]["plex_accessible_port"]))
+
+        print("VERBOSE MODE set as " + str(self.data["main"]["verbose"]))
+
+        if self.data["main"]["verbose"]:
+            print("VERBOSE MODE is active.")
 
         if os.path.exists(pathlib.Path(script_dir).joinpath('is_container')):
             self.data["main"]["bind_ip"] = "0.0.0.0" 

@@ -2,9 +2,10 @@
 
 ## FUTURE (may or may not be implemented):
  - Reorganize config.ini file
+ - Use locast official method of logging in and getting streams
  - Start using pip for third-party plugins
  - Rename `plex_accessible_ip`/`plex_accessible_port` to `advertise_ip`/`advertise_port`. Add `bind_ip`/`bind_port` options (https://github.com/tgorgdotcom/locast2plex/pull/98)
- - Hopefully phase out FCC channel checking (when locast reports proper channel numbers)
+ - Hopefully phase out FCC channel checking (when locast reports proper channel numbers) OR at least use an automation script to being the channel values into github externally.
  - Install script for those not using docker
  - Enable multiplatform Docker image
  - Wrap HTTP requests around error handling that existed in do_tuner() previously
@@ -19,6 +20,16 @@
 
 ## 1.0.0 (unreleased)
  - Most bugs squashed
+
+
+## 0.6.7
+ - Added some tweaks to help improve stuttering and stopping on some clients
+ - Set ffmpeg verbose when ini setting "verbose" is "True"
+ - Improved systemd service file/instructions (thanks @nshafer)
+ - Sanitize station names with invalid XML characters (thanks @RyanMathewson)
+
+## 0.6.6
+ - Fix for login issues due to locast using some kind of captcha (issue #272 - thanks @jg-24, @purduepete, @tmwebb2, @Nbr1Sniper, @mazinkhu, and others)
 
 ## 0.6.5
  - Additional fixes to help correct FCC database download issues
