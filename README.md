@@ -164,5 +164,5 @@ When submitting an issue, make sure to take note of the docker or command line o
 ## Credits
 #### A big THANK YOU to all who have co-developed locast2plex, and/or are answering issues in GitHub (sorry if I missed anyone!):
 ```
-@CTJohnK, @diana1055, @FozzieBear, @jcastilloalonso, @dcd, @steventwheeler, @precision, @deathbybandaid, @mneumark, @ratherDashing, @tharris9d, @tri-ler, @teconmoon, @dwkane, @RedGreen007, @gogorichie, @teconmoon, @Above2, @paradxum, @rottdog32, @numchucksoe, @begunfx, @yaroz, @JimSpeedo, @toadman50, @c0deweaver, @libersongm, @dnixon1981, @patrick-GH, @Oumpa31, @seantdavidson, @scumola, @BH000, @paradxum, @warrenmelnick, @SJLBoulder, @ThomasPBrauer, @jg-24, @purduepete, @tmwebb2, @Nbr1Sniper, @mazinkhu 
+@CTJohnK, @diana1055, @FozzieBear, @jcastilloalonso, @dcd, @steventwheeler, @precision, @deathbybandaid, @mneumark, @ratherDashing, @tharris9d, @tri-ler, @teconmoon, @dwkane, @RedGreen007, @gogorichie, @teconmoon, @Above2, @paradxum, @rottdog32, @numchucksoe, @begunfx, @yaroz, @JimSpeedo, @toadman50, @c0deweaver, @libersongm, @dnixon1981, @patrick-GH, @Oumpa31, @seantdavidson, @scumola, @BH000, @paradxum, @warrenmelnick, @SJLBoulder, @ThomasPBrauer, @jg-24, @purduepete, @tmwebb2, @Nbr1Sniper, @mazinkhu, @cklinker
 ```

@@ -23,10 +23,7 @@
 
 
 ## 0.6.7
- - Added some tweaks to help improve stuttering and stopping on some clients
- - Set ffmpeg verbose when ini setting "verbose" is "True"
- - Improved systemd service file/instructions (thanks @nshafer)
- - Sanitize station names with invalid XML characters (thanks @RyanMathewson)
+ - More login fixes (thanks @cklinker)
 
 ## 0.6.6
  - Fix for login issues due to locast using some kind of captcha (issue #272 - thanks @jg-24, @purduepete, @tmwebb2, @Nbr1Sniper, @mazinkhu, and others)
