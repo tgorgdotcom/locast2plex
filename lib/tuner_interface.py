@@ -340,14 +340,13 @@ class PlexHttpHandler(BaseHTTPRequestHandler):
 
             ffmpeg_command = [self.config['main']['ffmpeg_path'],
                                 "-i", channelUri,
-                                "-rtbufsize", config["main"]['ffmpeg_buffer'],
+                                #"-rtbufsize", config["main"]['ffmpeg_buffer'],
                                 "-c:v", "copy",
                                 "-c:a", "copy",
                                 "-f", "mpegts",
-                                "-nostats", 
-                                "-hide_banner",
-                                "-loglevel", "warning" if not self.config['main']['verbose'] else "verbose",
-                                "pipe:1"].extend(variable_options)
+                                "-nostats", "-hide_banner",
+                                "-loglevel", "warning", #if not self.config['main']['verbose'] else "verbose",
+                                "pipe:1"] #.extend(variable_options)
 
             ffmpeg_proc = subprocess.Popen(ffmpeg_command, stdout=subprocess.PIPE)
 
