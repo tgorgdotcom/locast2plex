@@ -33,7 +33,7 @@ class LocastService:
 
 
     @handle_url_except
-    def login(self, username, password):
+    def login(self, username, password, clientid):
 
         # check environment vars
         if (username is None):
@@ -44,7 +44,11 @@ class LocastService:
             print("Password not specified in config.ini.  Exiting...")
             return False
 
-        # login
+        if (clientid is None):
+            print("ClientID Token not specified in config.ini.  Exiting...")
+            return False
+
+		# login
         print("Logging into Locast using username " + username + "...")
 
         # https://api.locastnet.org/api/user/login
@@ -52,7 +56,7 @@ class LocastService:
         # {"username":"thomas_vg1@hotmail.com","password":"xxxxxxxx"}
 
 
-        loginReq = urllib.request.Request('https://api.locastnet.org/api/user/login?client_id=9qXBrVzpTjUZmVGsZRnnWQ-7GvGeJ48QWtV9v%2Bbsen4%3D',
+        loginReq = urllib.request.Request('https://api.locastnet.org/api/user/login?client_id=' + clientid,
                                           ('{"username":"' + username + '","password":"' + password + '"}').encode("utf-8"),
                                           {'Content-Type': 'application/json', 'User-agent': self.DEFAULT_USER_AGENT})
 
