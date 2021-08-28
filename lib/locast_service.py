@@ -48,7 +48,7 @@ class LocastService:
             print("ClientID Token not specified in config.ini.  Exiting...")
             return False
 
-		# login
+	# login
         print("Logging into Locast using username " + username + "...")
 
         # https://api.locastnet.org/api/user/login
