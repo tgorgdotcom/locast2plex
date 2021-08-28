@@ -26,6 +26,7 @@ class UserConfig():
             "cache_dir": None,
             "locast_username": None,
             "locast_password": None,
+            "locast_clientid": None,
             'disable_ssdp': False,
             'epg_update_frequency': 43200, # 12 hours
             'epg_update_days': 7,
